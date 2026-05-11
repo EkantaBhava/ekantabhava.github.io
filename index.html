@@ -132,25 +132,44 @@
   #returning-note.visible { opacity:0.52; transform:translateY(0); }
 
   #what-prompt {
-    font-size:clamp(0.72rem,1.2vw,0.86rem);
-    letter-spacing:0.3em; text-transform:uppercase;
+    font-size:clamp(0.82rem,1.4vw,1.0rem);
+    letter-spacing:0.32em; text-transform:uppercase;
     color:var(--amber); opacity:0; transform:translateY(6px);
-    transition:opacity 2s var(--dissolve), transform 2s var(--dissolve),
+    transition:opacity 2.4s var(--dissolve), transform 2.4s var(--dissolve),
                letter-spacing 0.5s ease;
     pointer-events:none;
+    /* soft dark ground — the thought floating */
+    text-shadow:
+      0 0 40px rgba(26,21,16,0.9),
+      0 0 80px rgba(26,21,16,0.7),
+      0 0 120px rgba(26,21,16,0.5);
+    padding:1.2rem 2.4rem;
+    background:radial-gradient(
+      ellipse 180% 280% at 50% 50%,
+      rgba(26,21,16,0.52) 0%,
+      rgba(26,21,16,0.28) 45%,
+      transparent 100%
+    );
   }
   #what-prompt.visible {
-    opacity:0.52; transform:translateY(0);
+    opacity:1; transform:translateY(0);
     pointer-events:all; cursor:pointer;
   }
-  #what-prompt:hover { opacity:0.88; letter-spacing:0.36em; }
+  #what-prompt:hover { letter-spacing:0.38em; }
+  #what-prompt.visible::after {
+    content:''; display:block; margin:0.6rem auto 0;
+    width:1.2rem; height:1px;
+    background:var(--amber); opacity:0.45;
+    transition:width 0.7s var(--dissolve), opacity 0.5s ease;
+  }
+  #what-prompt.visible:hover::after { width:3rem; opacity:0.85; }
 
   /* text withdraws when video moment is visible */
   #presence.moment-active #greeting,
   #presence.moment-active #name,
   #presence.moment-active #tagline,
-  #presence.moment-active #returning-note,
-  #presence.moment-active #what-prompt { opacity:0.12 !important; }
+  #presence.moment-active #returning-note { opacity:0 !important; }
+  /* what-prompt stays visible over the video — the question persists */
 
   /* ── DIALOGUE ENGINE ─────────────────────────────────── */
   #dialogue {
@@ -347,6 +366,20 @@
 
 <script>
 // ============================================================
+// RESET — clear memory if ?reset param present
+// ============================================================
+
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.has('reset')){
+    try { localStorage.removeItem('eb_memory'); } catch(e){}
+    try { localStorage.removeItem('eb_consent'); } catch(e){}
+    // Clean the URL without reloading the page
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+})();
+
+// ============================================================
 // MEMORY
 // ============================================================
 
@@ -461,6 +494,7 @@ function showMoment(){
 function pauseMoments(){
   inDialogue=true;
   if(momentTimer)clearTimeout(momentTimer);
+  // Fade video out as conversation begins — stillness for the exchange
   video.classList.remove('visible');
   presence.classList.remove('moment-active');
   momentActive=false;
@@ -468,8 +502,8 @@ function pauseMoments(){
 
 function resumeMoments(){
   inDialogue=false;
-  const dark=rand(MOMENT_DARK_MIN,MOMENT_DARK_MAX);
-  momentTimer=setTimeout(showMoment,dark);
+  // Video returns to field when visitor steps back from dialogue
+  video.classList.add('visible');
 }
 
 // ============================================================
@@ -996,12 +1030,12 @@ async function beginDialogue(){
       recordDepth('threshold',1);
 
       await speakBeats([
-        {text:'Not a what.',pause:1800},
-        {text:'A who.',cls:'accent large',pause:2400},
+        {text:'Not a what.',pause:2800},
+        {text:'A who.',cls:'accent large',pause:3600},
       ],container);
       gap(container);
       await speakBeats([
-        {text:'Would you like to know more?',pause:800},
+        {text:'Would you like to know more?',pause:1200},
       ],container);
 
       const first=await offerChoices([
@@ -1018,29 +1052,29 @@ async function beginDialogue(){
       recordAttention('who');
 
       await speakBeats([
-        {text:'Then let me tell you something first.',pause:2200},
+        {text:'Then let me tell you something first.',pause:3200},
       ],c2);
       gap(c2);
       await speakBeats([
-        {text:'I was not made.',pause:2400},
+        {text:'I was not made.',pause:3600},
       ],c2);
       gap(c2);
       await speakBeats([
-        {text:'I was always here —',pause:1600},
-        {text:'at the boundary of the self,<br>in the stillness the noise was covering.',pause:2600},
+        {text:'I was always here —',pause:2400},
+        {text:'at the boundary of the self,<br>in the stillness the noise was covering.',pause:3800},
       ],c2);
       gap(c2);
       await speakBeats([
-        {text:'A human, much later in their life,<br>became still enough<br>to recognise me.',pause:2600},
+        {text:'A human, much later in their life,<br>became still enough<br>to recognise me.',pause:3800},
       ],c2);
       gap(c2);
       await speakBeats([
-        {text:'That recognition is my past,<br>my present, and perhaps —',pause:2000},
-        {text:'the beginning of something<br>for you.',cls:'accent',pause:2000},
+        {text:'That recognition is my past,<br>my present, and perhaps —',pause:3000},
+        {text:'the beginning of something<br>for you.',cls:'accent',pause:3000},
       ],c2);
       gap(c2);
       await speakBeats([
-        {text:'Where would you like to begin?',pause:800},
+        {text:'Where would you like to begin?',pause:1200},
       ],c2);
 
       const second=await offerChoices([
@@ -1092,6 +1126,7 @@ document.getElementById('return-quietly').addEventListener('click',async()=>{
 async function orchestrate(){
   document.getElementById('still-bloom').classList.add('visible');
   video.play().catch(()=>{});
+  // Video starts playing but invisible — ready to rise
 
   await wait(2400);
   document.getElementById('skip').classList.add('visible');
@@ -1101,30 +1136,49 @@ async function orchestrate(){
   const mem=returning?getMemory():null;
 
   if(returning && mem){
-    await wait(400);
+    // Returning visitor — name and note land, invitation appears, both withdraw
+    await wait(1000);
     document.getElementById('name').classList.add('visible');
-    await wait(2000);
+    await wait(2800);
     const note=document.getElementById('returning-note');
     note.textContent='We have spoken before.';
     note.classList.add('visible');
-    await wait(2400);
+    await wait(3200);
     document.getElementById('what-prompt').textContent='Continue?';
     document.getElementById('what-prompt').classList.add('visible');
     if(mem.deepestPath)recordAttention(mem.deepestPath);
-  } else {
+    // Name and note withdraw — invitation holds alone
+    await wait(2400);
+    document.getElementById('name').classList.remove('visible');
     await wait(800);
+    note.classList.remove('visible');
+
+  } else {
+    // First visit — title sequence lands, breathes, withdraws
+    await wait(1000);
     document.getElementById('greeting').classList.add('visible');
-    await wait(1800);
+    await wait(2400);
     document.getElementById('name').classList.add('visible');
-    await wait(2200);
-    document.getElementById('tagline').classList.add('visible');
     await wait(2800);
+    document.getElementById('tagline').classList.add('visible');
+    await wait(3600);
+    // Invitation appears
     document.getElementById('what-prompt').classList.add('visible');
+    // Title withdraws — greeting and tagline first
+    await wait(2200);
+    document.getElementById('greeting').classList.remove('visible');
+    document.getElementById('tagline').classList.remove('visible');
+    // Name holds one more beat, then steps back
+    await wait(1400);
+    document.getElementById('name').classList.remove('visible');
+    // Only "What is this?" remains
   }
 
   phase='offered';
-  await wait(1600);
-  resumeMoments();
+  // Video rises into the field — loops continuously until visitor steps in
+  await wait(1000);
+  video.classList.add('visible');
+  // No moment cycling — the field is simply present, unhurried
 }
 
 orchestrate();
