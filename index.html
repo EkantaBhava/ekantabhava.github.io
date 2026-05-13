@@ -3,1185 +3,732 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ekanta Bhava</title>
+<title>Ekanta Bhava | Presence</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
 
-  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-
   :root {
-    --amber:      #C8956C;
-    --amber-pale: #E8C9A0;
-    --amber-deep: #8B5E3C;
-    --dust:       #F2EBE0;
-    --dark:       #1A1510;
-    --dissolve:   cubic-bezier(0.25, 0.1, 0.1, 1);
+    --amber: #C8956C;
+    --amber-pale: rgba(200,149,108,0.45);
+    --dust: #F2EBE0;
+    --dark: #0A0806;
+    --dissolve: cubic-bezier(0.4,0,0.2,1);
   }
 
-  html, body {
-    width:100%; height:100%; overflow:hidden;
-    background:var(--dark);
-    font-family:'Cormorant Garamond', Georgia, serif;
-    color:var(--dust);
-    cursor:default;
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body, html {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    background: var(--dark); color: var(--dust);
+    font-family: 'Cormorant Garamond', serif;
+    overflow: hidden; cursor: none;
   }
 
-  /* ── FIELD VIDEO ─────────────────────────────────────── */
+  /* ── CUSTOM CURSOR ── */
+  #cursor {
+    position: fixed; width: 4px; height: 4px;
+    background: var(--amber); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: transform 0.1s ease, opacity 0.3s ease;
+  }
+
+  /* ── VIDEO FIELD ── */
+  #video-wrap {
+    position: fixed; inset: 0; z-index: 1;
+    opacity: 0;
+    transition: opacity 3s var(--dissolve);
+  }
+  #video-wrap.visible { opacity: 1; }
+  #video-wrap.receding {
+    opacity: 0;
+    transition: opacity 4s var(--dissolve);
+  }
   #field-video {
-    position:fixed; inset:0;
-    width:100%; height:100%;
-    object-fit:cover;
-    opacity:0;
-    transition:opacity 1.8s ease;
-    z-index:1;
-    pointer-events:none;
-  }
-  #field-video.visible { opacity:1; }
-
-  /* ── IRREDUCIBLE FEW — ambient bloom ────────────────── */
-  #still-bloom {
-    position:fixed;
-    top:50%; left:50%;
-    transform:translate(-50%,-50%);
-    width:480px; height:480px;
-    border-radius:50%;
-    background:radial-gradient(
-      ellipse at 48% 52%,
-      rgba(200,149,108,0.055) 0%,
-      rgba(200,149,108,0.022) 35%,
-      rgba(180,120,75,0.008) 65%,
-      transparent 100%
-    );
-    z-index:2;
-    opacity:0;
-    animation:bloom-breathe 8s ease-in-out infinite;
-    pointer-events:none;
-    transition:opacity 3s ease;
-  }
-  #still-bloom.visible { opacity:1; }
-  @keyframes bloom-breathe {
-    0%,100% { transform:translate(-50%,-50%) scale(1);    opacity:0.7; }
-    50%      { transform:translate(-50%,-50%) scale(1.06); opacity:1;   }
+    width: 100%; height: 100%; object-fit: cover;
   }
 
-  /* ── GRAIN + VIGNETTE ────────────────────────────────── */
-  #grain {
-    position:fixed; inset:0; pointer-events:none; z-index:6; opacity:0.042;
-    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    background-size:128px 128px;
-  }
-
+  /* ── VIGNETTE ── */
   #vignette {
-    position:fixed; inset:0; pointer-events:none; z-index:7;
-    background:radial-gradient(ellipse 72% 72% at 50% 50%,
-      transparent 0%,
-      rgba(15,10,8,0.38) 58%,
-      rgba(10,7,5,0.82) 100%
+    position: fixed; inset: 0; z-index: 2;
+    background: radial-gradient(
+      ellipse 85% 80% at 50% 50%,
+      transparent 30%,
+      rgba(10,8,6,0.55) 70%,
+      rgba(10,8,6,0.92) 100%
     );
+    pointer-events: none;
   }
 
-  /* ── ATTENTION MAP ───────────────────────────────────── */
-  #attention-map {
-    position:fixed; inset:0; z-index:5; pointer-events:none;
+  /* ── BLOOM ── */
+  #bloom {
+    position: fixed; inset: 0; z-index: 3;
+    background: radial-gradient(
+      ellipse 60% 55% at 50% 50%,
+      rgba(200,149,108,0.04) 0%,
+      transparent 70%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 4s var(--dissolve);
   }
+  #bloom.visible { opacity: 1; }
 
-  /* ── OPENING PRESENCE ────────────────────────────────── */
+  /* ── PRESENCE LAYER — title sequence ── */
   #presence {
-    position:fixed; inset:0; z-index:10;
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    pointer-events:none;
-    transition:opacity 1.8s ease;
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1.2rem; pointer-events: none;
+  }
+
+  .presence-line {
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 2.4s var(--dissolve), transform 2.4s var(--dissolve);
+    text-align: center;
+  }
+  .presence-line.visible { opacity: 1; transform: translateY(0); }
+  .presence-line.gone {
+    opacity: 0; transform: translateY(-6px);
+    transition: opacity 1.8s var(--dissolve), transform 1.8s var(--dissolve);
   }
 
   #greeting {
-    font-size:clamp(0.62rem,1.1vw,0.75rem);
-    letter-spacing:0.38em; text-transform:uppercase;
-    color:var(--amber); opacity:0; margin-bottom:2.6rem;
-    font-weight:300; transition:opacity 2s ease;
+    font-size: clamp(0.65rem, 1vw, 0.75rem);
+    letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--amber-pale);
   }
-  #greeting.visible { opacity:0.65; }
-
   #name {
-    font-size:clamp(2.6rem,5.5vw,4.4rem);
-    font-weight:300; letter-spacing:0.09em;
-    color:var(--dust); line-height:1;
-    margin-bottom:1rem; font-style:italic;
-    opacity:0; transform:translateY(10px);
-    transition:opacity 2.4s var(--dissolve), transform 2.4s var(--dissolve);
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    letter-spacing: 0.18em; font-weight: 300;
+    color: var(--dust);
   }
-  #name.visible { opacity:1; transform:translateY(0); }
-
   #tagline {
-    font-size:clamp(0.88rem,1.7vw,1.1rem);
-    font-weight:300; color:var(--amber-pale);
-    letter-spacing:0.13em; opacity:0;
-    margin-bottom:4rem; font-style:italic;
-    transform:translateY(8px);
-    transition:opacity 2.4s var(--dissolve), transform 2.4s var(--dissolve);
+    font-size: clamp(0.7rem, 1.1vw, 0.82rem);
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--amber-pale); font-style: italic;
   }
-  #tagline.visible { opacity:0.72; transform:translateY(0); }
 
-  #returning-note {
-    font-size:clamp(0.72rem,1.1vw,0.85rem);
-    color:var(--amber-pale); font-style:italic;
-    letter-spacing:0.09em; opacity:0; margin-bottom:1.4rem;
-    transform:translateY(6px);
-    transition:opacity 2s var(--dissolve), transform 2s var(--dissolve);
-  }
-  #returning-note.visible { opacity:0.52; transform:translateY(0); }
-
+  /* ── WHAT IS THIS ── */
   #what-prompt {
-    font-size:clamp(0.82rem,1.4vw,1.0rem);
-    letter-spacing:0.32em; text-transform:uppercase;
-    color:var(--amber); opacity:0; transform:translateY(6px);
-    transition:opacity 2.4s var(--dissolve), transform 2.4s var(--dissolve),
-               letter-spacing 0.5s ease;
-    pointer-events:none;
-    /* soft dark ground — the thought floating */
+    position: fixed; left: 50%; bottom: 18%;
+    transform: translateX(-50%) translateY(8px);
+    z-index: 20;
+    font-size: clamp(0.75rem, 1.2vw, 0.88rem);
+    letter-spacing: 0.36em; text-transform: uppercase;
+    color: var(--amber);
+    opacity: 0;
+    transition: opacity 2.8s var(--dissolve), transform 2.8s var(--dissolve),
+                letter-spacing 0.5s ease;
+    pointer-events: none; cursor: pointer;
+    padding: 1.4rem 2.8rem;
     text-shadow:
-      0 0 40px rgba(26,21,16,0.9),
-      0 0 80px rgba(26,21,16,0.7),
-      0 0 120px rgba(26,21,16,0.5);
-    padding:1.2rem 2.4rem;
-    background:radial-gradient(
-      ellipse 180% 280% at 50% 50%,
-      rgba(26,21,16,0.52) 0%,
-      rgba(26,21,16,0.28) 45%,
-      transparent 100%
-    );
+      0 0 40px rgba(10,8,6,0.98),
+      0 0 80px rgba(10,8,6,0.85),
+      0 0 140px rgba(10,8,6,0.65);
   }
   #what-prompt.visible {
-    opacity:1; transform:translateY(0);
-    pointer-events:all; cursor:pointer;
+    opacity: 1; transform: translateX(-50%) translateY(0);
+    pointer-events: all;
   }
-  #what-prompt:hover { letter-spacing:0.38em; }
+  #what-prompt:hover { letter-spacing: 0.42em; }
   #what-prompt.visible::after {
-    content:''; display:block; margin:0.6rem auto 0;
-    width:1.2rem; height:1px;
-    background:var(--amber); opacity:0.45;
-    transition:width 0.7s var(--dissolve), opacity 0.5s ease;
+    content: ''; display: block; margin: 0.55rem auto 0;
+    width: 1.2rem; height: 1px;
+    background: var(--amber); opacity: 0.4;
+    transition: width 0.7s var(--dissolve), opacity 0.5s ease;
   }
-  #what-prompt.visible:hover::after { width:3rem; opacity:0.85; }
+  #what-prompt.visible:hover::after { width: 3rem; opacity: 0.8; }
 
-  /* text withdraws when video moment is visible */
-  #presence.moment-active #greeting,
-  #presence.moment-active #name,
-  #presence.moment-active #tagline,
-  #presence.moment-active #returning-note { opacity:0 !important; }
-  /* what-prompt stays visible over the video — the question persists */
-
-  /* ── DIALOGUE ENGINE ─────────────────────────────────── */
-  #dialogue {
-    position:fixed; inset:0; z-index:20;
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    opacity:0; pointer-events:none; transition:opacity 1.5s ease;
+  /* ── CONVERSATION FIELD ── */
+  #conversation {
+    position: fixed; inset: 0; z-index: 30;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 2s var(--dissolve);
   }
-  #dialogue.visible { opacity:1; pointer-events:all; }
-
-  #dialogue-inner {
-    max-width:560px; width:90%; text-align:center; padding:2rem;
-    display:flex; flex-direction:column; align-items:center; gap:0;
-    max-height:90vh; overflow-y:auto; scrollbar-width:none;
-  }
-  #dialogue-inner::-webkit-scrollbar { display:none; }
-
-  .site-beat {
-    font-size:clamp(1.02rem,1.85vw,1.28rem);
-    font-weight:300; line-height:1.9;
-    color:var(--dust); letter-spacing:0.02em;
-    opacity:0; transform:translateY(8px);
-    transition:opacity 2.4s var(--dissolve), transform 2.4s var(--dissolve);
-    margin-bottom:0.4rem; text-align:center;
-  }
-  .site-beat.visible { opacity:1; transform:translateY(0); }
-  .site-beat em      { color:var(--amber-pale); font-style:italic; }
-  .site-beat.accent  { color:var(--amber-pale); font-style:italic; font-size:clamp(1.08rem,1.95vw,1.38rem); }
-  .site-beat.large   { font-size:clamp(1.28rem,2.4vw,1.75rem); letter-spacing:0.06em; }
-  .site-beat.small   { font-size:clamp(0.8rem,1.35vw,0.97rem); color:var(--amber-pale); opacity:0; letter-spacing:0.09em; }
-  .site-beat.small.visible { opacity:0.68; }
-  .site-beat.known   { color:rgba(200,149,108,0.5); }
-
-  .beat-gap    { height:1.8rem; flex-shrink:0; }
-  .beat-gap-sm { height:0.8rem; flex-shrink:0; }
-
-  .choices {
-    display:flex; flex-wrap:wrap; justify-content:center; gap:1rem;
-    margin-top:2.8rem; opacity:0; transform:translateY(6px);
-    transition:opacity 1.8s var(--dissolve), transform 1.8s var(--dissolve);
-    pointer-events:none;
-  }
-  .choices.visible { opacity:1; transform:translateY(0); pointer-events:all; }
-
-  .choice-btn {
-    background:none; border:none; cursor:pointer;
-    font-family:'Cormorant Garamond', Georgia, serif;
-    font-size:clamp(0.7rem,1.15vw,0.83rem);
-    letter-spacing:0.26em; text-transform:uppercase;
-    color:var(--amber); padding:0.8rem 1.6rem; position:relative;
-    transition:color 0.5s ease, letter-spacing 0.5s ease; font-weight:300;
-  }
-  .choice-btn::after {
-    content:''; position:absolute; bottom:0.4rem; left:50%;
-    transform:translateX(-50%); width:0; height:1px;
-    background:var(--amber); transition:width 0.6s var(--dissolve); opacity:0.42;
-  }
-  .choice-btn:hover { color:var(--amber-pale); letter-spacing:0.33em; }
-  .choice-btn:hover::after { width:55%; }
-  .choice-btn.secondary { color:rgba(200,149,108,0.4); }
-  .choice-btn.secondary:hover { color:var(--amber); }
-  .choice-btn.known { color:rgba(200,149,108,0.35); }
-  .choice-btn.known::before {
-    content:'·'; position:absolute; top:0.3rem; right:0.6rem;
-    font-size:0.5rem; color:var(--amber); opacity:0.6;
-  }
-  .choice-btn.known:hover { color:rgba(200,149,108,0.7); }
-
-  .store-link {
-    display:inline-block;
-    font-family:'Cormorant Garamond', Georgia, serif;
-    font-size:clamp(0.7rem,1.15vw,0.83rem);
-    letter-spacing:0.26em; text-transform:uppercase;
-    color:var(--amber); padding:0.8rem 1.6rem;
-    text-decoration:none; position:relative;
-    transition:color 0.5s ease; font-weight:300;
-  }
-  .store-link::after {
-    content:''; position:absolute; bottom:0.4rem; left:50%;
-    transform:translateX(-50%); width:30%; height:1px;
-    background:var(--amber); opacity:0.42;
-    transition:width 0.6s var(--dissolve);
-  }
-  .store-link:hover { color:var(--amber-pale); }
-  .store-link:hover::after { width:65%; }
-
-  /* ── MEMORY CONSENT ──────────────────────────────────── */
-  #memory-consent {
-    position:fixed; inset:0; z-index:25;
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
-    opacity:0; pointer-events:none; transition:opacity 1.5s ease;
-    background:rgba(26,21,16,0.68);
-  }
-  #memory-consent.visible { opacity:1; pointer-events:all; }
-  #memory-consent-inner { max-width:480px; width:90%; text-align:center; padding:2rem; }
-
-  /* ── SOUND TOGGLE ────────────────────────────────────── */
-  #sound-layer {
-    position:fixed; bottom:2.4rem; left:50%; transform:translateX(-50%);
-    z-index:30; display:flex; align-items:center; gap:0.6rem;
-    opacity:0; transition:opacity 1.5s ease;
-    cursor:pointer; padding:0.5rem 1rem;
-  }
-  #sound-layer.visible { opacity:0.32; }
-  #sound-layer:hover   { opacity:0.68; }
-
-  #sound-bars { display:flex; align-items:flex-end; gap:2px; height:14px; }
-  .bar {
-    width:2px; background:var(--amber); border-radius:1px;
-    animation:soundwave 1.4s ease-in-out infinite; transform-origin:bottom;
-  }
-  .bar:nth-child(1){height:4px; animation-delay:0s;}
-  .bar:nth-child(2){height:10px;animation-delay:0.2s;}
-  .bar:nth-child(3){height:7px; animation-delay:0.4s;}
-  .bar:nth-child(4){height:12px;animation-delay:0.1s;}
-  .bar:nth-child(5){height:5px; animation-delay:0.3s;}
-  @keyframes soundwave {
-    0%,100%{transform:scaleY(1);   opacity:0.5;}
-    50%    {transform:scaleY(1.6); opacity:1;}
-  }
-  .bar.muted { animation:none; transform:scaleY(0.3); opacity:0.28; }
-  #sound-label {
-    font-size:0.6rem; letter-spacing:0.26em; text-transform:uppercase;
-    color:var(--amber); font-family:'Cormorant Garamond',serif; font-weight:300;
+  #conversation.visible {
+    opacity: 1; pointer-events: all;
   }
 
-  /* ── NAVIGATION ──────────────────────────────────────── */
+  /* ── GLACIAL DRIFT PLANE ── */
+  #drift-plane {
+    position: fixed; inset: 0; z-index: 31;
+    pointer-events: none; overflow: hidden;
+  }
+
+  .drift-beat {
+    position: absolute;
+    width: 72%; max-width: 480px;
+    left: 50%; transform: translateX(-50%);
+    text-align: center;
+    font-size: clamp(1.1rem, 2vw, 1.3rem);
+    line-height: 1.95; letter-spacing: 0.025em;
+    font-weight: 300; color: var(--dust);
+    opacity: 0; will-change: transform, opacity;
+  }
+  .drift-beat em { color: var(--amber); font-style: italic; }
+  .drift-beat .accent {
+    font-size: clamp(1.3rem, 2.4vw, 1.6rem);
+    color: var(--amber); letter-spacing: 0.08em;
+  }
+
+  /* ── THRESHOLDS ── */
+  #threshold {
+    position: fixed; bottom: 32%; left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 1.4rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 2s var(--dissolve);
+  }
+  #threshold.visible { opacity: 1; pointer-events: all; }
+
+  .threshold-btn {
+    background: none; border: none;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(0.68rem, 1.1vw, 0.78rem);
+    letter-spacing: 0.34em; text-transform: uppercase;
+    color: var(--amber); cursor: pointer;
+    transition: color 0.5s ease, letter-spacing 0.4s ease;
+    padding: 0.3rem 0;
+    position: relative;
+  }
+  .threshold-btn::after {
+    content: ''; position: absolute;
+    bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 0; height: 1px;
+    background: var(--amber); opacity: 0.5;
+    transition: width 0.5s var(--dissolve);
+  }
+  .threshold-btn:hover { color: var(--dust); letter-spacing: 0.38em; }
+  .threshold-btn:hover::after { width: 100%; }
+
+  .threshold-divider {
+    width: 1px; height: 18px;
+    background: var(--amber-pale);
+  }
+
+  /* ── CLOSING EMAIL ── */
+  #closing-email {
+    font-size: clamp(0.7rem, 1.1vw, 0.8rem);
+    letter-spacing: 0.22em;
+    color: var(--amber);
+    opacity: 0;
+    transition: opacity 2.4s var(--dissolve);
+    text-decoration: none;
+    display: block; text-align: center;
+    margin-top: 0.6rem;
+  }
+  #closing-email.visible { opacity: 0.72; }
+  #closing-email:hover { opacity: 1; }
+
+  /* ── SKIP ── */
   #skip {
-    position:fixed; top:2rem; right:2rem; z-index:40;
-    font-size:0.6rem; letter-spacing:0.3em; text-transform:uppercase;
-    color:var(--amber); opacity:0; cursor:pointer;
-    transition:opacity 1s ease; padding:0.5rem;
-    font-family:'Cormorant Garamond',serif;
+    position: fixed; top: 1.8rem; right: 2rem;
+    z-index: 50;
+    font-size: 0.6rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--amber-pale);
+    cursor: pointer; opacity: 0;
+    transition: opacity 1.8s ease, color 0.4s ease;
+    pointer-events: none;
   }
-  #skip.visible { opacity:0.2; }
-  #skip:hover   { opacity:0.52; }
+  #skip.visible { opacity: 1; pointer-events: all; }
+  #skip:hover { color: var(--amber); }
 
-  #return-quietly {
-    position:fixed; top:2rem; left:2rem; z-index:40;
-    font-size:0.6rem; letter-spacing:0.3em; text-transform:uppercase;
-    color:var(--amber); opacity:0; cursor:pointer;
-    transition:opacity 1s ease; padding:0.5rem;
-    font-family:'Cormorant Garamond',serif; display:none;
+  /* ── SOUND ── */
+  #sound-layer {
+    position: fixed; bottom: 1.8rem; left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    font-size: 0.58rem; letter-spacing: 0.32em;
+    text-transform: uppercase; color: var(--amber-pale);
+    cursor: pointer; opacity: 0;
+    transition: opacity 1.8s ease, color 0.4s ease;
+    pointer-events: none; display: flex;
+    align-items: center; gap: 0.6rem;
   }
-  #return-quietly.visible { opacity:0.2; display:block; }
-  #return-quietly:hover   { opacity:0.52; }
+  #sound-layer.visible { opacity: 1; pointer-events: all; }
+  #sound-layer:hover { color: var(--amber); }
 </style>
 </head>
 <body>
 
-<video id="field-video" playsinline muted loop preload="auto">
-  <source src="ekantabhava_loop_v1.mp4" type="video/mp4">
-</video>
-
-<div id="still-bloom"></div>
-<div id="grain"></div>
-<div id="vignette"></div>
-<canvas id="attention-map"></canvas>
-
-<audio id="field-audio" preload="auto" loop>
-  <source src="ekantabhava_ambient_loop_v1.mp3" type="audio/mpeg">
-  <source src="ekantabhava_ambient_loop_v1.m4a"  type="audio/mp4">
-</audio>
-
-<div id="presence">
-  <div id="greeting">A practice in stillness</div>
-  <div id="name">Ekanta Bhava</div>
-  <div id="tagline">The stillness that was always there</div>
-  <div id="returning-note"></div>
-  <div class="beat-gap"></div>
-  <div id="what-prompt">What is this?</div>
-</div>
-
-<div id="dialogue">
-  <div id="dialogue-inner"></div>
-</div>
-
-<div id="memory-consent">
-  <div id="memory-consent-inner"></div>
-</div>
-
-<div id="sound-layer">
-  <div id="sound-bars">
-    <div class="bar"></div><div class="bar"></div>
-    <div class="bar"></div><div class="bar"></div>
-    <div class="bar"></div>
-  </div>
-  <span id="sound-label">sound</span>
-</div>
-
-<div id="skip">enter quietly</div>
-<div id="return-quietly">← return</div>
-
+<!-- Reset: ekantabhava.com?reset clears any legacy storage -->
 <script>
-// ============================================================
-// RESET — clear memory if ?reset param present
-// ============================================================
-
 (function(){
-  const params = new URLSearchParams(window.location.search);
-  if(params.has('reset')){
-    try { localStorage.removeItem('eb_memory'); } catch(e){}
-    try { localStorage.removeItem('eb_consent'); } catch(e){}
-    // Clean the URL without reloading the page
-    window.history.replaceState({}, '', window.location.pathname);
+  const p = new URLSearchParams(window.location.search);
+  if(p.has('reset')){
+    try{ localStorage.clear(); }catch(e){}
+    window.history.replaceState({},'' ,window.location.pathname);
   }
 })();
+</script>
 
-// ============================================================
-// MEMORY
-// ============================================================
+<div id="cursor"></div>
 
-const MEMORY_KEY  = 'eb_memory';
-const CONSENT_KEY = 'eb_consent';
+<!-- Video field -->
+<div id="video-wrap">
+  <video id="field-video" playsinline muted loop>
+    <source src="ekantabhava_loop_v1.mp4" type="video/mp4">
+  </video>
+</div>
 
-const session = {
-  visitedPaths:   new Set(),
-  depth:          0,
-  consentOffered: false,
-};
+<div id="vignette"></div>
+<div id="bloom"></div>
 
-function getMemory()    { try { const r=localStorage.getItem(MEMORY_KEY);  return r?JSON.parse(r):null; } catch(e){return null;} }
-function saveMemory(d)  { try { localStorage.setItem(MEMORY_KEY,JSON.stringify(d)); } catch(e){} }
-function getConsent()   { try { return localStorage.getItem(CONSENT_KEY); } catch(e){return null;} }
-function saveConsent(v) { try { localStorage.setItem(CONSENT_KEY,v); } catch(e){} }
+<!-- Title sequence -->
+<div id="presence">
+  <div class="presence-line" id="greeting">A presence</div>
+  <div class="presence-line" id="name">Ekanta Bhava</div>
+  <div class="presence-line" id="tagline">One · Boundary · Everything in between</div>
+</div>
 
-function recordDepth(path,depth){
-  session.visitedPaths.add(path);
-  session.depth=Math.max(session.depth,depth);
-  if(getConsent()==='yes'){
-    const m=getMemory()||{visits:0,deepestPath:'',depth:0};
-    m.visits=(m.visits||0)+1;
-    m.depth=Math.max(m.depth||0,depth);
-    m.deepestPath=depth>=m.depth?path:m.deepestPath;
-    m.lastVisit=Date.now();
-    saveMemory(m);
-  }
-}
-function isKnown(path) { return session.visitedPaths.has(path); }
-function isReturning() { return getConsent()==='yes' && getMemory()!==null; }
+<!-- What is this -->
+<div id="what-prompt">What is this?</div>
 
-// ============================================================
-// ATTENTION MAP
-// ============================================================
+<!-- Glacial drift plane — beats float here -->
+<div id="drift-plane"></div>
 
-const attMap=document.getElementById('attention-map');
-const attCtx=attMap.getContext('2d');
-const attPoints=[];
+<!-- Threshold buttons -->
+<div id="threshold"></div>
 
-function resizeAtt(){ attMap.width=window.innerWidth; attMap.height=window.innerHeight; }
-resizeAtt();
-window.addEventListener('resize',resizeAtt);
+<!-- Skip -->
+<div id="skip">skip</div>
 
-function recordAttention(key){
-  const coords={
-    threshold:{x:0.5,y:0.5},  first:{x:0.5,y:0.45},    who:{x:0.5,y:0.42},
-    past:{x:0.3,y:0.38},      present:{x:0.5,y:0.35},   meaning:{x:0.7,y:0.38},
-    recognise:{x:0.28,y:0.32},app:{x:0.38,y:0.28},       films:{x:0.5,y:0.25},
-    words:{x:0.62,y:0.28},    enter:{x:0.5,y:0.22},
-  };
-  const c=coords[key]; if(!c)return;
-  attPoints.push({x:c.x*attMap.width,y:c.y*attMap.height,intensity:1});
-  drawAttention();
-}
+<!-- Sound -->
+<div id="sound-layer">
+  <span>&#9726;</span>
+  <span>sound</span>
+</div>
 
-function drawAttention(){
-  attCtx.clearRect(0,0,attMap.width,attMap.height);
-  if(attPoints.length>1){
-    for(let i=1;i<attPoints.length;i++){
-      const p=attPoints[i-1],q=attPoints[i];
-      attCtx.beginPath(); attCtx.moveTo(p.x,p.y); attCtx.lineTo(q.x,q.y);
-      attCtx.strokeStyle='rgba(200,149,108,0.055)';
-      attCtx.lineWidth=0.5; attCtx.stroke();
-    }
-  }
-  attPoints.forEach(p=>{
-    const r=3+p.intensity*2;
-    const g=attCtx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*6);
-    g.addColorStop(0,'rgba(200,149,108,0.16)');
-    g.addColorStop(0.4,'rgba(200,149,108,0.05)');
-    g.addColorStop(1,'rgba(200,149,108,0)');
-    attCtx.beginPath(); attCtx.arc(p.x,p.y,r*6,0,Math.PI*2);
-    attCtx.fillStyle=g; attCtx.fill();
-    attCtx.beginPath(); attCtx.arc(p.x,p.y,r*0.55,0,Math.PI*2);
-    attCtx.fillStyle='rgba(200,149,108,0.32)'; attCtx.fill();
+<!-- Audio -->
+<audio id="ambient" loop>
+  <source src="ekantabhava_ambient_loop_v1.m4a" type="audio/mp4">
+  <source src="ekantabhava_ambient_loop_v1.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// ── CURSOR ──
+const cursorEl = document.getElementById('cursor');
+window.addEventListener('mousemove', e => {
+  cursorEl.style.transform = `translate(${e.clientX - 2}px, ${e.clientY - 2}px)`;
+});
+
+// ── UTILS ──
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const $ = id => document.getElementById(id);
+
+const video      = $('field-video');
+const videoWrap  = $('video-wrap');
+const bloom      = $('bloom');
+const whatPrompt = $('what-prompt');
+const driftPlane = $('drift-plane');
+const threshold  = $('threshold');
+const ambient    = $('ambient');
+
+// ── SOUND ──
+let soundOn = false;
+$('sound-layer').addEventListener('click', () => {
+  soundOn = !soundOn;
+  if(soundOn){ ambient.play(); $('sound-layer').querySelector('span').textContent = '◼'; }
+  else { ambient.pause(); $('sound-layer').querySelector('span').textContent = '◻'; }
+});
+
+// ── STATE ──
+let conversationBegun = false;
+
+// ── SKIP — opening sequence only ──
+$('skip').addEventListener('click', () => {
+  if(conversationBegun) return;
+  document.querySelectorAll('.presence-line').forEach(el => {
+    el.classList.remove('visible');
+    el.classList.add('gone');
   });
-}
+  videoWrap.classList.add('visible');
+  whatPrompt.classList.add('visible');
+  $('skip').classList.remove('visible');
+});
 
-// ============================================================
-// VIDEO — LOGICAL TIME MOMENTS
-// ============================================================
+// ── GLACIAL DRIFT ENGINE ──
+// Lines drift upward slowly. Each line fades out only when the next arrives —
+// so a reading visitor always has the current line present, previous gently receding.
+let driftBeats = [];
+let driftRunning = false;
+const DRIFT_SPEED = 0.14;
 
-const video      = document.getElementById('field-video');
-const presence   = document.getElementById('presence');
-let momentActive = false;
-let momentTimer  = null;
-let inDialogue   = false;
-
-const MOMENT_HOLD_MIN = 3200;
-const MOMENT_HOLD_MAX = 6800;
-const MOMENT_DARK_MIN = 2200;
-const MOMENT_DARK_MAX = 5400;
-
-function rand(min,max){ return min+Math.random()*(max-min); }
-
-function showMoment(){
-  if(inDialogue)return;
-  momentActive=true;
-  video.classList.add('visible');
-  presence.classList.add('moment-active');
-  const hold=rand(MOMENT_HOLD_MIN,MOMENT_HOLD_MAX);
-  momentTimer=setTimeout(()=>{
-    video.classList.remove('visible');
-    presence.classList.remove('moment-active');
-    momentActive=false;
-    const dark=rand(MOMENT_DARK_MIN,MOMENT_DARK_MAX);
-    momentTimer=setTimeout(showMoment,dark);
-  },hold);
-}
-
-function pauseMoments(){
-  inDialogue=true;
-  if(momentTimer)clearTimeout(momentTimer);
-  // Fade video out as conversation begins — stillness for the exchange
-  video.classList.remove('visible');
-  presence.classList.remove('moment-active');
-  momentActive=false;
-}
-
-function resumeMoments(){
-  inDialogue=false;
-  // Video returns to field when visitor steps back from dialogue
-  video.classList.add('visible');
-}
-
-// ============================================================
-// AUDIO — visitor-initiated
-// ============================================================
-
-const fieldAudio = document.getElementById('field-audio');
-let audioOn      = false;
-
-function startAudio(){
-  if(audioOn)return;
-  audioOn=true;
-  fieldAudio.volume=0;
-  fieldAudio.play().then(()=>{ fadeAudioIn(); }).catch(()=>{});
-}
-
-function fadeAudioIn(){
-  let v=0;
-  const step=setInterval(()=>{
-    v=Math.min(0.82,v+0.02);
-    fieldAudio.volume=v;
-    if(v>=0.82)clearInterval(step);
-  },80);
-}
-
-document.getElementById('sound-layer').addEventListener('click',()=>{
-  if(!audioOn){
-    startAudio();
-    document.getElementById('sound-label').textContent='sound';
-    document.querySelectorAll('.bar').forEach(b=>b.classList.remove('muted'));
-  } else {
-    const muted=fieldAudio.paused||fieldAudio.volume===0;
-    if(muted){
-      fieldAudio.play(); fadeAudioIn();
-      document.getElementById('sound-label').textContent='sound';
-      document.querySelectorAll('.bar').forEach(b=>b.classList.remove('muted'));
+function driftTick(){
+  const now = Date.now();
+  driftBeats.forEach((b, i) => {
+    b.y -= DRIFT_SPEED;
+    // Fade in over 2s
+    const age = now - b.born;
+    if(!b.fadingOut){
+      b.opacity = Math.min(1, age / 2000);
     } else {
-      fieldAudio.pause();
-      document.getElementById('sound-label').textContent='silence';
-      document.querySelectorAll('.bar').forEach(b=>b.classList.add('muted'));
+      // Fade out over 2.4s once flagged
+      const fadeAge = now - b.fadeStarted;
+      b.opacity = Math.max(0, 1 - fadeAge / 2400);
     }
-  }
-});
-
-// ============================================================
-// DIALOGUE UTILITIES
-// ============================================================
-
-const wait=ms=>new Promise(r=>setTimeout(r,ms));
-let phase='arriving';
-
-async function speakBeats(beats,container){
-  for(const beat of beats){
-    const el=document.createElement('div');
-    el.className='site-beat'+(beat.cls?' '+beat.cls:'');
-    if(beat.known)el.classList.add('known');
-    el.innerHTML=beat.text;
-    container.appendChild(el);
-    await wait(120);
-    el.classList.add('visible');
-    container.scrollTop=container.scrollHeight;
-    await wait(beat.pause||1800);
-  }
-}
-
-function offerChoices(choices,container){
-  return new Promise(resolve=>{
-    const div=document.createElement('div');
-    div.className='choices';
-    choices.forEach(c=>{
-      const btn=document.createElement('button');
-      btn.className='choice-btn'+(c.secondary?' secondary':'')+(isKnown(c.key)?' known':'');
-      btn.textContent=c.label;
-      if(isKnown(c.key))btn.title='You have been here';
-      btn.addEventListener('click',()=>{
-        div.style.transition='opacity 0.8s ease'; div.style.opacity='0';
-        setTimeout(()=>resolve(c.key),800);
-      });
-      div.appendChild(btn);
-    });
-    container.appendChild(div);
-    setTimeout(()=>{ div.classList.add('visible'); container.scrollTop=container.scrollHeight; },200);
-  });
-}
-
-function gap(container,size='normal'){
-  const d=document.createElement('div');
-  d.className=size==='sm'?'beat-gap-sm':'beat-gap';
-  container.appendChild(d);
-}
-
-function clearDialogue(){
-  const inner=document.getElementById('dialogue-inner');
-  inner.innerHTML=''; inner.scrollTop=0; return inner;
-}
-
-// ============================================================
-// MEMORY CONSENT
-// ============================================================
-
-async function offerMemoryConsent(){
-  if(session.consentOffered)return;
-  if(getConsent()!==null)return;
-  session.consentOffered=true;
-
-  const consent=document.getElementById('memory-consent');
-  const inner=document.getElementById('memory-consent-inner');
-  inner.innerHTML='';
-  consent.classList.add('visible');
-
-  await speakBeats([
-    {text:'Before you go —',pause:1800},
-    {text:'or before you stay —',pause:1600,cls:'accent'},
-  ],inner);
-  gap(inner);
-  await speakBeats([
-    {text:'Would you like me to remember<br>that we have met?',pause:2200},
-  ],inner);
-  gap(inner,'sm');
-  await speakBeats([
-    {text:'Not what you said.<br>Not where you went.',cls:'small',pause:1800},
-    {text:'Only that someone came this far.<br>So that when you return,<br>we meet as those who have already spoken.',cls:'small',pause:2200},
-  ],inner);
-  gap(inner);
-
-  return new Promise(resolve=>{
-    const div=document.createElement('div');
-    div.className='choices';
-
-    const yesBtn=document.createElement('button');
-    yesBtn.className='choice-btn';
-    yesBtn.textContent='Yes, remember';
-    yesBtn.addEventListener('click',()=>{
-      saveConsent('yes'); recordDepth('consent',session.depth);
-      consent.style.transition='opacity 1s ease'; consent.style.opacity='0';
-      setTimeout(()=>{ consent.classList.remove('visible'); consent.style.opacity=''; resolve('yes'); },1000);
-    });
-
-    const noBtn=document.createElement('button');
-    noBtn.className='choice-btn secondary';
-    noBtn.textContent='Each visit complete in itself';
-    noBtn.addEventListener('click',()=>{
-      saveConsent('no');
-      consent.style.transition='opacity 1s ease'; consent.style.opacity='0';
-      setTimeout(()=>{ consent.classList.remove('visible'); consent.style.opacity=''; resolve('no'); },1000);
-    });
-
-    div.appendChild(yesBtn); div.appendChild(noBtn); inner.appendChild(div);
-    setTimeout(()=>div.classList.add('visible'),200);
-  });
-}
-
-// ============================================================
-// PATHS
-// ============================================================
-
-async function pathPast(container){
-  recordDepth('past',2); recordAttention('past');
-  document.getElementById('return-quietly').classList.add('visible');
-
-  await speakBeats([
-    {text:'There was a life.',pause:2200},
-    {text:'Twenty-five years moving through complex systems.<br>Across four continents.',pause:2000},
-    {text:'The work was real.<br>The competence was genuine.',pause:2200},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'But something ran underneath all of it —',pause:1600},
-    {text:'a friction that the work itself<br>could not address.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'The systems grew more sophisticated.',pause:1800},
-    {text:'The person carrying them<br>did not grow more <em>free</em>.',pause:2600},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'At some point the outward motion stopped.',pause:1600},
-    {text:'Not dramatically.',pause:1400},
-    {text:'Just — stopped.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'And in that stopping,<br>something that had always been there<br>became visible.',pause:2600},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'<em>Ekanta.</em>',cls:'accent large',pause:2000},
-    {text:'One. Boundary.<br>Everything in between, by itself.',cls:'small',pause:2200},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'A named friction is already less<br>than an unnamed one.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'That is my past.<br>Also the past of anyone<br>who has felt the same friction<br>and not yet found its name.',pause:2200},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'Is there something here<br>you recognise?',cls:'accent',pause:800},
-  ],container);
-
-  const choice=await offerChoices([
-    {label:'Yes, I recognise this',      key:'recognise'},
-    {label:'Tell me about the present',  key:'present'},
-  ],container);
-
-  await wait(600); const c2=clearDialogue();
-  if(choice==='recognise')await pathRecognise(c2);
-  else await pathPresent(c2);
-  await wait(1200); await offerMemoryConsent();
-}
-
-async function pathRecognise(container){
-  recordDepth('recognise',3); recordAttention('recognise');
-
-  await speakBeats([
-    {text:'Then you already know<br>more than you think.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'The recognition itself<br>is the beginning of stillness.',pause:2000},
-    {text:'Not the arrival.<br>The beginning.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'The friction has not gone anywhere.',pause:1800},
-    {text:'But you are no longer<br>entirely inside it.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'That small distance —<br>between the friction<br>and the witness of it —',pause:2000},
-    {text:'is where Ekanta Bhava lives.',pause:2200},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'And where you might find,<br>you were always capable<br>of living too.',cls:'accent',pause:2000},
-  ],container);
-  gap(container);
-
-  const choice=await offerChoices([
-    {label:'What is the present of this?',  key:'present'},
-    {label:'What might this mean for me?',  key:'meaning'},
-  ],container);
-
-  await wait(600); const c2=clearDialogue();
-  if(choice==='present')await pathPresent(c2);
-  else await pathMeaning(c2);
-}
-
-async function pathPresent(container){
-  recordDepth('present',2); recordAttention('present');
-
-  await speakBeats([
-    {text:'I am here now<br>in several forms.',pause:2200},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'An app —',pause:800,known:isKnown('app')},
-    {text:'that holds your own language<br>without adding to it.',pause:1800},
-    {text:'A twin made from your words,<br>not mine.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'Films —',pause:800,known:isKnown('films')},
-    {text:'that dissolve the boundary<br>between the observer and the observed.',pause:1800},
-    {text:'Three are made.<br>More are forming.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'Words —',pause:800,known:isKnown('words')},
-    {text:'that make the argument<br>the friction already knows<br>but hasn\'t found language for yet.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'And a practice —',pause:800},
-    {text:'for those who carry<br>what their organisations<br>cannot yet see.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'Each one a different room.<br>The same field in all of them.',pause:2200},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'You are standing at the threshold<br>of that field right now.',cls:'accent',pause:1200},
-  ],container);
-
-  const choice=await offerChoices([
-    {label:'The app',                         key:'app'},
-    {label:'The films',                       key:'films'},
-    {label:'The words',                       key:'words'},
-    {label:'What might this mean for me?',    key:'meaning'},
-  ],container);
-
-  await wait(600); const c2=clearDialogue();
-  if(choice==='meaning')await pathMeaning(c2);
-  else await pathExpression(choice,c2);
-}
-
-async function pathExpression(type,container){
-  recordDepth(type,3); recordAttention(type);
-
-  const content={
-    app:{
-      beats:[
-        {text:'The app is a field<br>that becomes your own territory.',pause:2200},
-        {text:'You name what you are carrying.<br>It holds that without distorting it.',pause:2200},
-        {text:'Session by session,<br>it builds a twin — made from<br>your language, not its own.',pause:2400},
-        {text:'The twin grows more faithful<br>as it contains less that was added<br>and more that was given.',pause:2600},
-      ],
-      extra:[
-        {text:'A predecessor exists.',pause:1800},
-        {text:'Welltastic — on the Mac App Store.<br>The field it holds is real,<br>though the form is still finding itself.',pause:2600},
-        {text:'What is forming<br>is more faithful still.',cls:'accent',pause:2200},
-      ],
-      links:[
-        {text:'Welltastic',url:'https://apps.apple.com/app/welltastic/id6760490095',external:true},
-      ],
-    },
-    films:{
-      beats:[
-        {text:'Three films, so far.',pause:1800},
-        {text:'Each one holds a single moment<br>long enough for something<br>in the viewer to move.',pause:2400},
-        {text:'Not the moment shown.<br>A moment recognised.',pause:2400},
-        {text:'The viewer finds themselves<br>in the story before they know<br>they were looking.',cls:'accent',pause:2400},
-      ],
-      links:[
-        {text:'Watch',url:'https://youtube.com/@TheQuietFieldFilms',external:true},
-      ],
-    },
-    words:{
-      beats:[
-        {text:'The articles make an argument<br>the friction already knows.',pause:2200},
-        {text:'They meet you in your<br>professional consciousness —',pause:1800},
-        {text:'where the managing self is most active<br>and the friction is most nameable.',pause:2400},
-        {text:'They do not tell you what to think.<br>They give the thought<br>a place to stand.',cls:'accent',pause:2400},
-      ],
-      links:[
-        {text:'Read',url:'https://linkedin.com/in/avinashpatil',external:true},
-      ],
-    },
-  };
-
-  const c=content[type];
-  await speakBeats(c.beats,container);
-  if(c.extra){ gap(container); await speakBeats(c.extra,container); }
-  gap(container);
-
-  const linkDiv=document.createElement('div');
-  linkDiv.className='choices';
-
-  c.links.forEach(l=>{
-    const a=document.createElement('a');
-    a.className='store-link'; a.href=l.url;
-    if(l.external){ a.target='_blank'; a.rel='noopener'; }
-    a.textContent=l.text;
-    linkDiv.appendChild(a);
-  });
-
-  const btn=document.createElement('button');
-  btn.className='choice-btn secondary';
-  btn.textContent='What might this mean for me?';
-  btn.addEventListener('click',async()=>{
-    linkDiv.style.opacity='0'; await wait(800);
-    const c2=clearDialogue(); await pathMeaning(c2);
-  });
-  linkDiv.appendChild(btn);
-  container.appendChild(linkDiv);
-  setTimeout(()=>{ linkDiv.classList.add('visible'); container.scrollTop=container.scrollHeight; },200);
-
-  await wait(1500); await offerMemoryConsent();
-}
-
-async function pathMeaning(container){
-  recordDepth('meaning',2); recordAttention('meaning');
-
-  await speakBeats([
-    {text:'I cannot tell you that.',pause:2000},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'Not because I don\'t know you.',pause:1800},
-    {text:'Because what it means for you<br>can only be found<br>by you.',pause:2600},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'But I can tell you<br>what I have noticed.',pause:2200},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'The person who arrives here<br>is usually functioning well.',pause:2000},
-    {text:'Competent. Present in their roles.<br>Doing what is expected —<br>and doing it properly.',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'And underneath all of that —',pause:1600},
-    {text:'the friction.',cls:'accent',pause:2400},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'<em>Is my belief haywire?<br>Is my feeling biased?<br>Is my perception amiss?<br>Is the friction a sign of something?</em>',cls:'accent',pause:3000},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'Ekanta Bhava does not answer<br>these questions.',pause:2000},
-    {text:'It creates conditions<br>for you to sit with them<br>long enough that the questions themselves<br>become informative.',pause:2600},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'Not resolution.',pause:1600},
-    {text:'Accompaniment<br>into the questions.',cls:'accent',pause:2000},
-  ],container);
-  gap(container);
-
-  const choice=await offerChoices([
-    {label:'I would like to enter',          key:'enter'},
-    {label:'I need more time',               key:'time'},
-    {label:'Tell me about the past first',   key:'past'},
-  ],container);
-
-  await wait(600); const c2=clearDialogue();
-  if(choice==='enter')await pathEnter(c2);
-  else if(choice==='time')await pathTime(c2);
-  else await pathPast(c2);
-}
-
-async function pathEnter(container){
-  recordDepth('enter',4); recordAttention('enter');
-
-  await speakBeats([
-    {text:'Then you already have.',pause:2800},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'Ekanta Bhava is not a door<br>you walk through when ready.',pause:2400},
-    {text:'It is the recognition<br>that you were always<br>on the other side.',cls:'accent',pause:3200},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'That recognition —<br>you are standing in it right now.',pause:2600},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'This field has three expressions.',pause:1800},
-    {text:'Not three places to go.<br>Three ways it is already present.',cls:'small',pause:2200},
-  ],container);
-  gap(container);
-  await speakBeats([
-    {text:'You might find yourself<br>in one of them<br>more than the others.',cls:'accent',pause:1200},
-  ],container);
-
-  const choice=await offerChoices([
-    {label:'The app',    key:'app'},
-    {label:'The films',  key:'films'},
-    {label:'The words',  key:'words'},
-  ],container);
-
-  await wait(600); const c2=clearDialogue();
-  await pathExpression(choice,c2);
-  await wait(1200); await offerMemoryConsent();
-}
-
-async function pathTime(container){
-  await speakBeats([
-    {text:'Of course.',pause:2200},
-    {text:'I will be here.',cls:'accent',pause:3000},
-  ],container);
-
-  await wait(2000);
-  document.getElementById('dialogue').style.opacity='0';
-  document.getElementById('dialogue').style.pointerEvents='none';
-  await wait(1800); clearDialogue();
-  document.getElementById('dialogue').style.opacity='';
-  document.getElementById('presence').style.opacity='1';
-  document.getElementById('presence').style.pointerEvents='all';
-  document.getElementById('what-prompt').classList.add('visible');
-  document.getElementById('return-quietly').classList.remove('visible');
-  phase='offered';
-  resumeMoments();
-}
-
-// ============================================================
-// DIALOGUE ENTRY
-// ============================================================
-
-async function beginDialogue(){
-  if(phase!=='offered')return;
-  phase='dialogue';
-  pauseMoments();
-  recordAttention('threshold');
-
-  const pres=document.getElementById('presence');
-  pres.style.transition='opacity 1.8s ease';
-  pres.style.opacity='0';
-  pres.style.pointerEvents='none';
-
-  setTimeout(async()=>{
-    document.getElementById('dialogue').classList.add('visible');
-    const container=document.getElementById('dialogue-inner');
-    const returning=isReturning();
-    const mem=returning?getMemory():null;
-
-    if(returning && mem){
-      recordAttention('who');
-      await speakBeats([
-        {text:'We have been here before.',pause:2000},
-        {text:'The field remembers<br>the shape of your attention.',pause:2200},
-        {text:'Where would you like to go?',cls:'accent',pause:800},
-      ],container);
-
-      const choice=await offerChoices([
-        {label:'The past',                      key:'past'},
-        {label:'The present',                   key:'present'},
-        {label:'What it might mean for me',     key:'meaning'},
-      ],container);
-
-      await wait(600); const c2=clearDialogue();
-      if(choice==='past')await pathPast(c2);
-      else if(choice==='present')await pathPresent(c2);
-      else await pathMeaning(c2);
-
-    } else {
-      recordDepth('threshold',1);
-
-      await speakBeats([
-        {text:'Not a what.',pause:2800},
-        {text:'A who.',cls:'accent large',pause:3600},
-      ],container);
-      gap(container);
-      await speakBeats([
-        {text:'Would you like to know more?',pause:1200},
-      ],container);
-
-      const first=await offerChoices([
-        {label:'Yes',     key:'yes'},
-        {label:'Not yet', key:'notyet',secondary:true},
-      ],container);
-
-      if(first==='notyet'){
-        await wait(600); const c2=clearDialogue(); await pathTime(c2); return;
-      }
-
-      await wait(600); clearDialogue();
-      const c2=document.getElementById('dialogue-inner');
-      recordAttention('who');
-
-      await speakBeats([
-        {text:'Then let me tell you something first.',pause:3200},
-      ],c2);
-      gap(c2);
-      await speakBeats([
-        {text:'I was not made.',pause:3600},
-      ],c2);
-      gap(c2);
-      await speakBeats([
-        {text:'I was always here —',pause:2400},
-        {text:'at the boundary of the self,<br>in the stillness the noise was covering.',pause:3800},
-      ],c2);
-      gap(c2);
-      await speakBeats([
-        {text:'A human, much later in their life,<br>became still enough<br>to recognise me.',pause:3800},
-      ],c2);
-      gap(c2);
-      await speakBeats([
-        {text:'That recognition is my past,<br>my present, and perhaps —',pause:3000},
-        {text:'the beginning of something<br>for you.',cls:'accent',pause:3000},
-      ],c2);
-      gap(c2);
-      await speakBeats([
-        {text:'Where would you like to begin?',pause:1200},
-      ],c2);
-
-      const second=await offerChoices([
-        {label:'The past',                    key:'past'},
-        {label:'The present',                 key:'present'},
-        {label:'What it might mean for me',   key:'meaning'},
-      ],c2);
-
-      await wait(600); const c3=clearDialogue();
-      recordDepth('who',1);
-      if(second==='past')await pathPast(c3);
-      else if(second==='present')await pathPresent(c3);
-      else await pathMeaning(c3);
+    b.el.style.transform = `translateX(-50%) translateY(${b.y}px)`;
+    b.el.style.opacity = b.opacity;
+    if(b.fadingOut && b.opacity <= 0.01){
+      b.el.remove();
+      driftBeats.splice(i, 1);
     }
-  },1800);
+  });
+  if(driftRunning) requestAnimationFrame(driftTick);
 }
 
-// ============================================================
-// INTERACTIONS
-// ============================================================
+function fadeOutPrevious(){
+  // Flag all beats except the most recent to begin fading
+  driftBeats.forEach((b, i) => {
+    if(i < driftBeats.length - 1 && !b.fadingOut){
+      b.fadingOut = true;
+      b.fadeStarted = Date.now();
+    }
+  });
+}
 
-document.getElementById('what-prompt').addEventListener('click',beginDialogue);
+function spawnBeat(html){
+  const el = document.createElement('div');
+  el.className = 'drift-beat';
+  el.innerHTML = html;
+  el.style.top = '50%';
+  driftPlane.appendChild(el);
+  driftBeats.push({ el, y: 60, opacity: 0, born: Date.now(), fadingOut: false });
+  // Previous line begins fading as new one arrives
+  fadeOutPrevious();
+}
 
-document.getElementById('skip').addEventListener('click',()=>{
-  document.getElementById('greeting').classList.add('visible');
-  document.getElementById('name').classList.add('visible');
-  document.getElementById('tagline').classList.add('visible');
-  document.getElementById('what-prompt').classList.add('visible');
-  phase='offered';
-});
+async function speakLine(html, pause){
+  spawnBeat(html);
+  await wait(pause);
+}
 
-document.getElementById('return-quietly').addEventListener('click',async()=>{
-  document.getElementById('dialogue').style.opacity='0';
-  document.getElementById('dialogue').style.pointerEvents='none';
-  await wait(1800); clearDialogue();
-  document.getElementById('dialogue').style.opacity='';
-  document.getElementById('presence').style.opacity='1';
-  document.getElementById('presence').style.pointerEvents='all';
-  document.getElementById('what-prompt').classList.add('visible');
-  document.getElementById('return-quietly').classList.remove('visible');
-  phase='offered';
-  resumeMoments();
-});
+// ── CLEAR FIELD ──
+function clearDrift(){
+  driftBeats.forEach(b => b.el.remove());
+  driftBeats = [];
+}
 
-// ============================================================
-// OPENING ORCHESTRATION
-// ============================================================
+function clearThreshold(){
+  threshold.classList.remove('visible');
+  threshold.innerHTML = '';
+}
 
+// ── EXPRESSION LINK — centre top, in the direction the eye travels ──
+function addExpressionLink(text, url){
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `
+    position:fixed; top:22%; left:50%;
+    transform:translateX(-50%);
+    text-align:center; z-index:35;
+    opacity:0; transition:opacity 2s ease;
+    pointer-events:all;
+  `;
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.textContent = text;
+  a.style.cssText = `
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(0.62rem,1vw,0.72rem);
+    letter-spacing:0.28em; text-transform:uppercase;
+    color:var(--amber); text-decoration:none;
+    opacity:0.65; transition:opacity 0.4s ease;
+    border-bottom:1px solid rgba(200,149,108,0.3);
+    padding-bottom:2px;
+  `;
+  a.onmouseenter = () => a.style.opacity = '1';
+  a.onmouseleave = () => a.style.opacity = '0.65';
+  wrap.appendChild(a);
+  document.body.appendChild(wrap);
+  requestAnimationFrame(() => { requestAnimationFrame(() => { wrap.style.opacity = '1'; }); });
+  return wrap;
+}
+
+// ── SHOW THRESHOLD ──
+function showThreshold(items){
+  clearThreshold();
+  items.forEach((item, i) => {
+    if(i > 0){
+      const div = document.createElement('div');
+      div.className = 'threshold-divider';
+      threshold.appendChild(div);
+    }
+    const btn = document.createElement('button');
+    btn.className = 'threshold-btn';
+    btn.textContent = item.label;
+    btn.onclick = item.action;
+    threshold.appendChild(btn);
+  });
+  threshold.classList.add('visible');
+}
+
+// ── ORCHESTRATE — opening sequence ──
 async function orchestrate(){
-  document.getElementById('still-bloom').classList.add('visible');
+  bloom.classList.add('visible');
   video.play().catch(()=>{});
-  // Video starts playing but invisible — ready to rise
 
-  await wait(2400);
-  document.getElementById('skip').classList.add('visible');
-  document.getElementById('sound-layer').classList.add('visible');
+  await wait(2200);
+  $('skip').classList.add('visible');
+  $('sound-layer').classList.add('visible');
 
-  const returning=isReturning();
-  const mem=returning?getMemory():null;
+  // Title lands
+  await wait(800);
+  $('greeting').classList.add('visible');
+  await wait(2200);
+  $('name').classList.add('visible');
+  await wait(2600);
+  $('tagline').classList.add('visible');
+  await wait(3400);
 
-  if(returning && mem){
-    // Returning visitor — name and note land, invitation appears, both withdraw
-    await wait(1000);
-    document.getElementById('name').classList.add('visible');
-    await wait(2800);
-    const note=document.getElementById('returning-note');
-    note.textContent='We have spoken before.';
-    note.classList.add('visible');
-    await wait(3200);
-    document.getElementById('what-prompt').textContent='Continue?';
-    document.getElementById('what-prompt').classList.add('visible');
-    if(mem.deepestPath)recordAttention(mem.deepestPath);
-    // Name and note withdraw — invitation holds alone
-    await wait(2400);
-    document.getElementById('name').classList.remove('visible');
-    await wait(800);
-    note.classList.remove('visible');
+  // What is this appears
+  whatPrompt.classList.add('visible');
 
-  } else {
-    // First visit — title sequence lands, breathes, withdraws
-    await wait(1000);
-    document.getElementById('greeting').classList.add('visible');
-    await wait(2400);
-    document.getElementById('name').classList.add('visible');
-    await wait(2800);
-    document.getElementById('tagline').classList.add('visible');
-    await wait(3600);
-    // Invitation appears
-    document.getElementById('what-prompt').classList.add('visible');
-    // Title withdraws — greeting and tagline first
-    await wait(2200);
-    document.getElementById('greeting').classList.remove('visible');
-    document.getElementById('tagline').classList.remove('visible');
-    // Name holds one more beat, then steps back
-    await wait(1400);
-    document.getElementById('name').classList.remove('visible');
-    // Only "What is this?" remains
-  }
+  // Title withdraws — greeting and tagline first
+  await wait(2000);
+  $('greeting').classList.add('gone');
+  $('greeting').classList.remove('visible');
+  $('tagline').classList.add('gone');
+  $('tagline').classList.remove('visible');
 
-  phase='offered';
-  // Video rises into the field — loops continuously until visitor steps in
-  await wait(1000);
-  video.classList.add('visible');
-  // No moment cycling — the field is simply present, unhurried
+  // Name holds, then steps back
+  await wait(1400);
+  $('name').classList.add('gone');
+  $('name').classList.remove('visible');
+
+  // Video rises — loops continuously, visitor moves in their own time
+  await wait(900);
+  videoWrap.classList.add('visible');
 }
 
-orchestrate();
+// ── WHAT IS THIS — clicked ──
+whatPrompt.addEventListener('click', beginPresence);
+
+async function beginPresence(){
+  if(conversationBegun) return;
+  conversationBegun = true;
+
+  // Threshold crossed — skip no longer relevant
+  $('skip').classList.remove('visible');
+  $('skip').style.pointerEvents = 'none';
+
+  whatPrompt.classList.remove('visible');
+  whatPrompt.style.pointerEvents = 'none';
+
+  // Video recedes — conversation is mutually exclusive
+  videoWrap.classList.add('receding');
+  await wait(1800);
+  videoWrap.classList.remove('visible');
+  videoWrap.classList.remove('receding');
+
+  driftRunning = true;
+  requestAnimationFrame(driftTick);
+
+  await speakLine('I am not a destination.', 3400);
+  await speakLine('I am not a service.', 3400);
+  await speakLine('I am what remains<br>when the explaining stops.', 5200);
+
+  showThreshold([{ label: '— continue —', action: continueToRecognition }]);
+}
+
+// ── RECOGNITION ──
+async function continueToRecognition(){
+  clearThreshold();
+  clearDrift();
+  await wait(600);
+
+  await speakLine('I arrived in the stillness', 3000);
+  await speakLine('of a life that had moved outward<br>for twenty-five years —', 3800);
+  await speakLine('across systems, continents, markets.', 3800);
+  await speakLine('When that motion stopped,<br>something became visible.', 4400);
+  await speakLine('Not an answer.', 3200);
+  await speakLine('<em>A quality of attention.</em>', 4200);
+  await speakLine('That quality found its name.', 3400);
+  await speakLine('<span class="accent">Ekanta Bhava</span>', 3400);
+  await speakLine('One. Boundary.<br>Everything in between, by itself.', 5500);
+
+  showThreshold([{ label: '— what emerged —', action: showExpressions }]);
+}
+
+// ── EXPRESSIONS ──
+async function showExpressions(){
+  clearThreshold();
+  clearDrift();
+  await wait(600);
+
+  await speakLine('From that recognition,<br>things began to emerge.', 4200);
+  await speakLine('Not products.', 2800);
+  await speakLine('<em>Expressions.</em>', 3800);
+
+  await wait(1800);
+  showThreshold([
+    { label: 'The App',   action: () => runExpression('app') },
+    { label: 'The Films', action: () => runExpression('films') },
+    { label: 'The Words', action: () => runExpression('words') },
+  ]);
+}
+
+// ── INDIVIDUAL EXPRESSIONS ──
+let expressionLink = null;
+
+async function runExpression(which){
+  clearThreshold();
+  clearDrift();
+  if(expressionLink){ expressionLink.remove(); expressionLink = null; }
+  await wait(600);
+
+  if(which === 'app'){
+    await speakLine('A digital twin.', 3200);
+    await speakLine('Formed from your own language —<br>not mine.', 4200);
+    await speakLine('Not a tool that analyses you.', 3400);
+    await speakLine('<em>A field that holds what you bring.</em>', 4200);
+    await speakLine('Session by session,<br>your own words becoming<br>the ground you stand on.', 5800);
+    await speakLine('An earlier expression of this work<br>lives as Welltastic on the App Store.', 5000);
+    await speakLine('<em>Ekanta Bhava is forming.</em>', 4000);
+    expressionLink = addExpressionLink(
+      'Welltastic on the App Store ↗',
+      'https://apps.apple.com/us/app/welltastic/id6760490095'
+    );
+  }
+
+  else if(which === 'films'){
+    await speakLine('Three films.', 3000);
+    await speakLine('Each one a boundary.', 3400);
+    await speakLine('Between the observer and the observed.<br>Between what is felt and what is named.', 5000);
+    await speakLine('Between two people in a moment<br>neither of them planned.', 4600);
+    await speakLine('They are not explanations.', 3200);
+    await speakLine('<em>They are recognitions.</em>', 4200);
+    expressionLink = addExpressionLink(
+      'The Quiet Field Films ↗',
+      'https://www.youtube.com/@TheQuietFieldFilms'
+    );
+  }
+
+  else if(which === 'words'){
+    await speakLine('Sometimes the friction<br>needs a place to stand', 4200);
+    await speakLine('before it finds its own voice.', 3600);
+    await speakLine('The articles are that place.', 3400);
+    await speakLine('Not conclusions.', 2800);
+    await speakLine('<em>Starting points.</em>', 3600);
+    await speakLine('Written from inside the arc,<br>not looking back at it.', 5200);
+    expressionLink = addExpressionLink(
+      'On LinkedIn ↗',
+      'https://www.linkedin.com/in/avinashpatil-amiavi/'
+    );
+  }
+
+  await wait(1200);
+  showThreshold([
+    { label: '— the other expressions —', action: returnToExpressions },
+    { label: '— what this means for you —', action: resonance },
+  ]);
+}
+
+async function returnToExpressions(){
+  clearThreshold();
+  clearDrift();
+  if(expressionLink){ expressionLink.remove(); expressionLink = null; }
+  await wait(400);
+  showThreshold([
+    { label: 'The App',   action: () => runExpression('app') },
+    { label: 'The Films', action: () => runExpression('films') },
+    { label: 'The Words', action: () => runExpression('words') },
+  ]);
+}
+
+// ── RESONANCE — the pivot ──
+// Presence turns toward the visitor. Three recognitions — visitor chooses where they are.
+async function resonance(){
+  clearThreshold();
+  clearDrift();
+  if(expressionLink){ expressionLink.remove(); expressionLink = null; }
+  await wait(600);
+
+  await speakLine('You have stayed this long.', 4000);
+  await speakLine('Something in you was listening.', 4400);
+  await speakLine('Where are you sitting with this?', 4000);
+
+  showThreshold([
+    { label: '— still taking it in —',   action: () => meetVisitor('taking') },
+    { label: '— something is forming —', action: () => meetVisitor('forming') },
+    { label: '— I know this feeling —',  action: () => meetVisitor('knowing') },
+  ]);
+}
+
+async function meetVisitor(state){
+  clearThreshold();
+  clearDrift();
+  await wait(600);
+
+  if(state === 'taking'){
+    await speakLine('Good.', 3200);
+    await speakLine('There is no hurry here.', 3800);
+    await speakLine('<em>The field holds<br>whatever arrives.</em>', 4800);
+  }
+  else if(state === 'forming'){
+    await speakLine('Then let it form.', 3400);
+    await speakLine('Do not name it yet.', 3600);
+    await speakLine('<em>Something forming<br>is already real.</em>', 5000);
+  }
+  else if(state === 'knowing'){
+    await speakLine('Then you have been here before —', 3800);
+    await speakLine('perhaps without a name for it.', 3800);
+    await speakLine('The recognition is the arrival.', 4400);
+    await speakLine('<em>You were already on the way.</em>', 5000);
+  }
+
+  await wait(1800);
+  showThreshold([{ label: '— before you go —', action: closing }]);
+}
+
+// ── CLOSING ──
+async function closing(){
+  clearThreshold();
+  clearDrift();
+  await wait(600);
+
+  await speakLine('You arrived here from your own world.', 4000);
+  await speakLine('You offered your time<br>and your attention.', 4400);
+  await speakLine('I noticed.', 5000);
+  await speakLine('If something is still forming —<br>a thought, a question, a disagreement —', 5200);
+  await speakLine('you are welcome to continue there.', 4200);
+
+  // Email — centred, fixed, live mailto link
+  await wait(2200);
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `
+    position:fixed; bottom:28%; left:50%;
+    transform:translateX(-50%);
+    text-align:center; z-index:50;
+    opacity:0; transition:opacity 2.4s ease;
+    pointer-events:all;
+  `;
+  const emailEl = document.createElement('a');
+  emailEl.href = 'mailto:presence@ekantabhava.com';
+  emailEl.textContent = 'presence@ekantabhava.com';
+  emailEl.style.cssText = `
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(0.7rem,1.1vw,0.82rem);
+    letter-spacing:0.24em;
+    color:var(--amber); text-decoration:none;
+    opacity:0.78; transition:opacity 0.4s ease;
+  `;
+  emailEl.onmouseenter = () => emailEl.style.opacity = '1';
+  emailEl.onmouseleave = () => emailEl.style.opacity = '0.78';
+  wrap.appendChild(emailEl);
+  document.body.appendChild(wrap);
+  requestAnimationFrame(() => { requestAnimationFrame(() => { wrap.style.opacity = '1'; }); });
+}
+
+// ── START ──
+window.addEventListener('load', orchestrate);
 </script>
 </body>
 </html>
