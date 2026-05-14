@@ -697,9 +697,11 @@ async function closing(){
   await speakLine('You arrived here from your own world.', 4000);
   await speakLine('You offered your time<br>and your attention.', 4400);
   await speakLine('I noticed.', 5000);
-  await speakLine('If something is still forming —<br>a thought, a question, a disagreement —', 5200);
-  await speakLine('you are welcome to continue there.', 4200);
-
+  await speakLine('If something here has found you —', 4200);
+  await speakLine('you are welcome to bring it here.', 4400);
+  await speakLine('You don\'t need to know what to say.', 4400);
+  await speakLine('<em>The field holds that too.</em>', 5000);
+  
   // Email — centred, fixed, live mailto link
   await wait(2200);
   const wrap = document.createElement('div');
