@@ -253,6 +253,22 @@
   }
   #sound-layer.visible { opacity: 1; pointer-events: all; }
   #sound-layer:hover { color: var(--amber); }
+
+  /* ── LOGO ANIMATION ── */
+  #logo-wrap {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 1.2s var(--dissolve);
+  }
+  #logo-wrap.visible { opacity: 1; }
+  #logo-wrap.dissolving { opacity: 0; transition: opacity 2s var(--dissolve); }
+  #logo-wrap.gone { display: none; }
+  #logo-video {
+    width: min(480px, 72vw);
+    height: auto;
+  }
 </style>
 </head>
 <body>
@@ -267,6 +283,13 @@
   }
 })();
 </script>
+
+<!-- Logo animation — plays once before opening sequence -->
+<div id="logo-wrap">
+  <video id="logo-video" playsinline muted>
+    <source src="EkantaBhava_Logo_1x1_V1.mp4" type="video/mp4">
+  </video>
+</div>
 
 <div id="cursor"></div>
 
@@ -344,6 +367,12 @@ let conversationBegun = false;
 // ── SKIP — opening sequence only ──
 $('skip').addEventListener('click', () => {
   if(conversationBegun) return;
+  // Skip logo if still playing
+  if(!logoWrap.classList.contains('gone')){
+    logoVideo.pause();
+    startOrchestrate();
+    return;
+  }
   document.querySelectorAll('.presence-line').forEach(el => {
     el.classList.remove('visible');
     el.classList.add('gone');
@@ -701,7 +730,7 @@ async function closing(){
   await speakLine('you are welcome to bring it here.', 4400);
   await speakLine('You don\'t need to know what to say.', 4400);
   await speakLine('<em>The field holds that too.</em>', 5000);
-  
+
   // Email — centred, fixed, live mailto link
   await wait(2200);
   const wrap = document.createElement('div');
@@ -729,8 +758,32 @@ async function closing(){
   requestAnimationFrame(() => { requestAnimationFrame(() => { wrap.style.opacity = '1'; }); });
 }
 
+// ── LOGO ANIMATION ──
+const logoWrap  = $('logo-wrap');
+const logoVideo = $('logo-video');
+
+function startOrchestrate(){
+  logoWrap.classList.remove('visible');
+  logoWrap.classList.add('dissolving');
+  logoWrap.addEventListener('transitionend', () => {
+    logoWrap.classList.add('gone');
+  }, { once: true });
+  orchestrate();
+}
+
+logoVideo.addEventListener('ended', startOrchestrate);
+logoVideo.addEventListener('error', startOrchestrate);
+
 // ── START ──
-window.addEventListener('load', orchestrate);
+window.addEventListener('load', () => {
+  // Brief pause, then fade in, then play
+  setTimeout(() => {
+    logoWrap.classList.add('visible');
+    logoWrap.addEventListener('transitionend', () => {
+      logoVideo.play().catch(startOrchestrate);
+    }, { once: true });
+  }, 400);
+});
 </script>
 </body>
 </html>
