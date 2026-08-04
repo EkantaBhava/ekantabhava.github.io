@@ -24,6 +24,7 @@
     overflow: hidden; cursor: none;
   }
 
+  /* ── CUSTOM CURSOR ── */
   #cursor {
     position: fixed; width: 4px; height: 4px;
     background: var(--amber); border-radius: 50%;
@@ -32,6 +33,7 @@
     transition: transform 0.1s ease, opacity 0.3s ease;
   }
 
+  /* ── VIDEO FIELD ── */
   #video-wrap {
     position: fixed; inset: 0; z-index: 1;
     opacity: 0;
@@ -46,6 +48,7 @@
     width: 100%; height: 100%; object-fit: cover;
   }
 
+  /* ── VIGNETTE ── */
   #vignette {
     position: fixed; inset: 0; z-index: 2;
     background: radial-gradient(
@@ -57,6 +60,7 @@
     pointer-events: none;
   }
 
+  /* ── BLOOM ── */
   #bloom {
     position: fixed; inset: 0; z-index: 3;
     background: radial-gradient(
@@ -70,6 +74,7 @@
   }
   #bloom.visible { opacity: 1; }
 
+  /* ── PRESENCE LAYER — title sequence ── */
   #presence {
     position: fixed; inset: 0; z-index: 10;
     display: flex; flex-direction: column;
@@ -104,6 +109,7 @@
     color: var(--amber-pale); font-style: italic;
   }
 
+  /* ── WHAT IS THIS ── */
   #what-prompt {
     position: fixed; left: 50%; bottom: 18%;
     transform: translateX(-50%) translateY(8px);
@@ -134,6 +140,7 @@
   }
   #what-prompt.visible:hover::after { width: 3rem; opacity: 0.8; }
 
+  /* ── CONVERSATION FIELD ── */
   #conversation {
     position: fixed; inset: 0; z-index: 30;
     display: flex; flex-direction: column;
@@ -146,6 +153,7 @@
     opacity: 1; pointer-events: all;
   }
 
+  /* ── GLACIAL DRIFT PLANE ── */
   #drift-plane {
     position: fixed; inset: 0; z-index: 31;
     pointer-events: none; overflow: hidden;
@@ -167,6 +175,34 @@
     color: var(--amber); letter-spacing: 0.08em;
   }
 
+  /* ── SCENE IMAGES — the two rooms ──
+     Same layering trick as the field video: image sits low in the stack,
+     the existing #vignette/#bloom darken it further, and a flat dark wash
+     (::after) keeps it a presence behind the text rather than a scene
+     competing with it. Motion is a very slow scale only — nothing here
+     performs at the visitor, it just stays quietly alive. */
+  #scene-wrap {
+    position: fixed; inset: 0; z-index: 1;
+    opacity: 0; overflow: hidden;
+    transition: opacity 3s var(--dissolve);
+    pointer-events: none;
+  }
+  #scene-wrap.visible { opacity: 1; }
+  #scene-wrap::after {
+    content: ''; position: absolute; inset: 0;
+    background: rgba(10, 8, 6, 0.6);
+  }
+  #scene-image {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: sepia(0.15) saturate(0.85) brightness(0.85);
+    animation: scene-drift 36s ease-in-out infinite alternate;
+  }
+  @keyframes scene-drift {
+    0%   { transform: scale(1.0); }
+    100% { transform: scale(1.04); }
+  }
+
+  /* ── THRESHOLDS ── */
   #threshold {
     position: fixed; bottom: 32%; left: 50%;
     transform: translateX(-50%);
@@ -203,6 +239,7 @@
     background: var(--amber-pale);
   }
 
+  /* ── CLOSING EMAIL ── */
   #closing-email {
     font-size: clamp(0.7rem, 1.1vw, 0.8rem);
     letter-spacing: 0.22em;
@@ -216,6 +253,7 @@
   #closing-email.visible { opacity: 0.72; }
   #closing-email:hover { opacity: 1; }
 
+  /* ── SKIP ── */
   #skip {
     position: fixed; top: 1.8rem; right: 2rem;
     z-index: 50;
@@ -228,6 +266,7 @@
   #skip.visible { opacity: 1; pointer-events: all; }
   #skip:hover { color: var(--amber); }
 
+  /* ── SOUND ── */
   #sound-layer {
     position: fixed; bottom: 1.8rem; left: 50%;
     transform: translateX(-50%);
@@ -242,6 +281,7 @@
   #sound-layer.visible { opacity: 1; pointer-events: all; }
   #sound-layer:hover { color: var(--amber); }
 
+  /* ── LOGO ANIMATION ── */
   #logo-wrap {
     position: fixed; inset: 0; z-index: 100;
     background: var(--dark);
@@ -289,6 +329,11 @@
 
 <div id="vignette"></div>
 <div id="bloom"></div>
+
+<!-- The two rooms — workshop / kitchen stills, faceless, no machine visible -->
+<div id="scene-wrap">
+  <img id="scene-image" src="" alt="">
+</div>
 
 <!-- Title sequence -->
 <div id="presence">
@@ -436,6 +481,25 @@ function clearThreshold(){
   threshold.innerHTML = '';
 }
 
+// ── SCENE IMAGES — the two rooms ──
+const SCENE_WORKSHOP = 'otto-workshop-day.jpeg';
+const SCENE_KITCHEN  = 'otto-table-night.png';
+const sceneWrap  = $('scene-wrap');
+const sceneImage = $('scene-image');
+
+function preloadScenes(){
+  [SCENE_WORKSHOP, SCENE_KITCHEN].forEach(src => { const img = new Image(); img.src = src; });
+}
+
+function showScene(src){
+  sceneImage.src = src;
+  sceneWrap.classList.add('visible');
+}
+
+function hideScene(){
+  sceneWrap.classList.remove('visible');
+}
+
 // ── EXPRESSION LINK — centre top, in the direction the eye travels ──
 function addExpressionLink(text, url){
   const wrap = document.createElement('div');
@@ -576,7 +640,80 @@ async function continueToRecognition(){
   await speakLine('<span class="accent">Ekanta Bhava</span>', 3400);
   await speakLine('One. Boundary.<br>Everything in between, by itself.', 5500);
 
-  showThreshold([{ label: '— what emerged —', action: showExpressions }]);
+  showThreshold([{ label: '— what emerged —', action: showContinuum }]);
+}
+
+// ── THE TWO ROOMS — human-machine collaboration, enacted not depicted ──
+// Presence, collaboration, and non-imposition are demonstrated by how this
+// section behaves toward the visitor, not described in the copy: it waits
+// rather than autoplaying past them, offers a real choice with neither
+// option weighted as "better," and never resolves to a verdict at the end.
+async function showContinuum(){
+  clearThreshold();
+  clearDrift();
+  await wait(600);
+  preloadScenes();
+
+  await speakLine('The mind has more than one room.', 3400);
+  await speakLine('One where thought turns something over.', 3600);
+  await speakLine('One where the hands already know what to do.', 3800);
+
+  clearDrift();
+  await speakLine('I can meet you in the workshop, or in the kitchen.', 3600);
+  await speakLine('Where would you like to begin?', 2000);
+
+  showThreshold([
+    { label: 'The workshop', action: () => enterRoom('workshop') },
+    { label: 'The kitchen',  action: () => enterRoom('kitchen') },
+  ]);
+}
+
+async function enterRoom(which, offerOther = true){
+  clearThreshold();
+  clearDrift();
+  await wait(400);
+
+  showScene(which === 'workshop' ? SCENE_WORKSHOP : SCENE_KITCHEN);
+  await wait(1200);
+
+  await speakLine('There is no hurry in this room.', 3600);
+  await speakLine('Only within the mind — and in the hands — searching for something.', 4400);
+
+  if(which === 'workshop'){
+    await speakLine('Here, the question isn\'t asked out loud.', 3600);
+    await speakLine('The hands already know, before the mind finishes wondering.', 4000);
+    await speakLine('This, too, is a kind of thinking.', 3600);
+  } else {
+    await speakLine('Here, nothing needs to be finished tonight.', 3600);
+    await speakLine('The mind returns to something — not to solve it, only to sit with it a while longer.', 4600);
+    await speakLine('This, too, is a kind of doing.', 3600);
+  }
+
+  await wait(1200);
+
+  if(offerOther){
+    const other = which === 'workshop' ? 'kitchen' : 'workshop';
+    showThreshold([
+      { label: '— see the other room —', action: () => enterRoom(other, false) },
+      { label: '— I\'ve seen enough for now —', action: closeContinuum },
+    ]);
+  } else {
+    await closeContinuum();
+  }
+}
+
+async function closeContinuum(){
+  clearThreshold();
+  clearDrift();
+  hideScene();
+  await wait(800);
+
+  await speakLine('Thought and action — both remain yours.', 3800);
+  await speakLine('I do not choose, in either.', 3400);
+  await speakLine('I only hold the space, long enough for your shape to arrive.', 4600);
+
+  await wait(1200);
+  showExpressions();
 }
 
 // ── EXPRESSIONS ──
