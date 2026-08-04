@@ -4,6 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ekanta Bhava | Presence</title>
+
+<!-- ── SOCIAL PREVIEW / SHARE CARD ──
+     The site is only ever reached via a shared link (LinkedIn, YouTube, text
+     message) — never search. This card is the first thing anyone sees, before
+     they click through, so it states the premise rather than describing a
+     product: a field demonstrating machine presence meeting the human
+     probabilistic runtime, in both thought and action, without deciding for it. -->
+<meta name="description" content="Not a product. A field where a machine meets the human probabilistic runtime — in thought, and in action — without ever deciding for it.">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ekantabhava.com/">
+<meta property="og:title" content="Ekanta Bhava | Presence">
+<meta property="og:description" content="Not a product. A field where a machine meets the human probabilistic runtime — in thought, and in action — without ever deciding for it.">
+<meta property="og:image" content="https://ekantabhava.com/otto-workshop-day.jpeg">
+<meta property="og:image:width" content="2752">
+<meta property="og:image:height" content="1536">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Ekanta Bhava | Presence">
+<meta name="twitter:description" content="Not a product. A field where a machine meets the human probabilistic runtime — in thought, and in action — without ever deciding for it.">
+<meta name="twitter:image" content="https://ekantabhava.com/otto-workshop-day.jpeg">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%230A0806'/%3E%3Ccircle cx='50' cy='50' r='22' fill='%23C8956C'/%3E%3C/svg%3E">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
 
@@ -648,11 +671,85 @@ async function continueToRecognition(){
 // section behaves toward the visitor, not described in the copy: it waits
 // rather than autoplaying past them, offers a real choice with neither
 // option weighted as "better," and never resolves to a verdict at the end.
+//
+// ── REGISTER POOL — one texture of lived engagement, picked once per visit ──
+// Four qualitatively different registers a room can be entered in (framework
+// borrowed loosely from the four Purusharthas — duty, provision, pleasure,
+// reflection — not their terminology; never named to the visitor). Picked
+// once per visit, not per room, so a visitor who sees both rooms gets one
+// coherent thread rather than two unrelated scenes. Same fixed/variable
+// relationship as the broader phrasing-variation idea, just at a deeper
+// register: there, words vary and meaning holds; here, the room's register
+// varies and the visual (and the closing thesis line) holds.
+const ROOM_REGISTERS = [
+  {
+    name: 'duty',
+    workshop: [
+      'Here, the hands move because something asked to be finished.',
+      'Not urgency — just the quiet weight of what\'s owed.',
+      'This, too, is a kind of thinking.',
+    ],
+    kitchen: [
+      'Here, the hands rest, but the weight doesn\'t leave the room.',
+      'Something still owed sits quietly at the edge of the table.',
+      'This, too, is a kind of doing.',
+    ],
+  },
+  {
+    name: 'provision',
+    workshop: [
+      'Here, the hands are building toward something that will hold.',
+      'Not for praise — only because it needs to stand.',
+      'This, too, is a kind of thinking.',
+    ],
+    kitchen: [
+      'Here, the mind turns over what tomorrow will require.',
+      'Not worry — just a quiet tally of what needs tending.',
+      'This, too, is a kind of doing.',
+    ],
+  },
+  {
+    name: 'pleasure',
+    workshop: [
+      'Here, the hands move because the wood wanted shaping.',
+      'No one asked for this. It simply pulled at attention.',
+      'This, too, is a kind of thinking.',
+    ],
+    kitchen: [
+      'Here, the warmth of the mug is its own small reason to stay.',
+      'Nothing here is being solved. Something is simply being enjoyed.',
+      'This, too, is a kind of doing.',
+    ],
+  },
+  {
+    name: 'reflection',
+    workshop: [
+      'Here, the question isn\'t asked out loud.',
+      'The hands already know, before the mind finishes wondering.',
+      'This, too, is a kind of thinking.',
+    ],
+    kitchen: [
+      'Here, nothing needs to be finished tonight.',
+      'The mind returns to something — not to solve it, only to sit with it a while longer.',
+      'This, too, is a kind of doing.',
+    ],
+  },
+];
+
+let visitRegister = null;
+function pickVisitRegister(){
+  if(!visitRegister){
+    visitRegister = ROOM_REGISTERS[Math.floor(Math.random() * ROOM_REGISTERS.length)];
+  }
+  return visitRegister;
+}
+
 async function showContinuum(){
   clearThreshold();
   clearDrift();
   await wait(600);
   preloadScenes();
+  pickVisitRegister();
 
   await speakLine('The mind has more than one room.', 3400);
   await speakLine('One where thought turns something over.', 3600);
@@ -678,16 +775,13 @@ async function enterRoom(which, offerOther = true){
 
   await speakLine('There is no hurry in this room.', 3600);
   await speakLine('Only within the mind — and in the hands — searching for something.', 4400);
+  await speakLine('Not all of it is settled. Some of it is only set aside — there\'s only so much the hands can hold at once.', 5200);
 
-  if(which === 'workshop'){
-    await speakLine('Here, the question isn\'t asked out loud.', 3600);
-    await speakLine('The hands already know, before the mind finishes wondering.', 4000);
-    await speakLine('This, too, is a kind of thinking.', 3600);
-  } else {
-    await speakLine('Here, nothing needs to be finished tonight.', 3600);
-    await speakLine('The mind returns to something — not to solve it, only to sit with it a while longer.', 4600);
-    await speakLine('This, too, is a kind of doing.', 3600);
-  }
+  const register = pickVisitRegister();
+  const lines = register[which];
+  await speakLine(lines[0], 3600);
+  await speakLine(lines[1], 4200);
+  await speakLine(lines[2], 3600);
 
   await wait(1200);
 
@@ -752,15 +846,9 @@ async function runExpression(which){
     await speakLine('Not a tool that analyses you.', 3400);
     await speakLine('<em>A field that holds what you bring.</em>', 4200);
     await speakLine('Session by session,<br>your own words becoming<br>the ground you stand on.', 5800);
-    await speakLine('An earlier expression of this work<br>lives as Welltastic on the App Store.', 5000);
     await speakLine('<em>Ekanta Bhava is forming.</em>', 4000);
-    // Without this, the line keeps glacially drifting upward for as long as the
-    // visitor lingers here and eventually collides with the link below.
+    await speakLine('Available soon.', 3400);
     clearDrift();
-    expressionLink = addExpressionLink(
-      'Welltastic on the App Store ↗',
-      'https://apps.apple.com/us/app/welltastic/id6760490095'
-    );
   }
 
   else if(which === 'films'){
