@@ -262,6 +262,42 @@
     background: var(--amber-pale);
   }
 
+  /* ── WRITING FIELD — (d), the resonance moment ──
+     Whatever is typed here is never transmitted, never stored, never read —
+     by anything, including this site. cleared from the DOM the instant the
+     visitor moves on. See WORKING_NOTES.md's privacy-as-architecture
+     principle: this isn't a promise about how the words are handled, it's
+     that the question doesn't arise, because they never leave the browser. */
+  #writing-field {
+    position: fixed; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 40;
+    width: 72%; max-width: 560px;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 1.6rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 2s var(--dissolve);
+  }
+  #writing-field.visible { opacity: 1; pointer-events: all; }
+
+  #writing-input {
+    width: 100%; min-height: 140px;
+    background: rgba(200,149,108,0.04);
+    border: 1px solid rgba(200,149,108,0.28);
+    border-radius: 2px;
+    color: var(--dust);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1rem, 1.6vw, 1.15rem);
+    line-height: 1.75; letter-spacing: 0.01em;
+    padding: 1.2rem 1.4rem;
+    resize: none; outline: none;
+    transition: border-color 0.4s ease;
+  }
+  #writing-input::placeholder {
+    color: var(--amber-pale); font-style: italic;
+  }
+  #writing-input:focus { border-color: var(--amber); }
+
   /* ── CLOSING EMAIL ── */
   #closing-email {
     font-size: clamp(0.7rem, 1.1vw, 0.8rem);
@@ -373,6 +409,13 @@
 
 <!-- Threshold buttons -->
 <div id="threshold"></div>
+
+<!-- Writing field — (d), the resonance moment. Never transmitted, never
+     stored, never read. See #writing-field in the stylesheet. -->
+<div id="writing-field">
+  <textarea id="writing-input" maxlength="2000" rows="5"></textarea>
+  <button id="writing-continue" class="threshold-btn">— that's enough —</button>
+</div>
 
 <!-- Skip -->
 <div id="skip">skip</div>
@@ -847,7 +890,7 @@ async function runExpression(which){
     await speakLine('<em>A field that holds what you bring.</em>', 4200);
     await speakLine('Session by session,<br>your own words becoming<br>the ground you stand on.', 5800);
     await speakLine('<em>Ekanta Bhava is forming.</em>', 4000);
-    await speakLine('Available soon.', 3400);
+    await speakLine('Waiting in the wings.', 3400);
     clearDrift();
   }
 
@@ -899,7 +942,16 @@ async function returnToExpressions(){
 }
 
 // ── RESONANCE — the pivot ──
-// Presence turns toward the visitor. Three recognitions — visitor chooses where they are.
+// (d): replaced the old three-button branch (taking/forming/knowing — a
+// predefined entry point requiring the visitor to categorize themselves
+// before being met) with an open writing field. What's written is never
+// transmitted, never stored, never read — see #writing-field and
+// WORKING_NOTES.md's privacy-as-architecture principle. The response that
+// follows is a fixed line, not a rotating register (same category as the
+// two-rooms closing thesis) — grounded in adhyaropa-apavada: the witness
+// doesn't supply wisdom from outside, only clears the way for what's
+// already there. Writing is skippable — "— that's enough —" is always
+// clickable, whether or not anything was typed.
 async function resonance(){
   clearThreshold();
   clearDrift();
@@ -908,36 +960,43 @@ async function resonance(){
 
   await speakLine('You have stayed this long.', 4000);
   await speakLine('Something in you was listening.', 4400);
-  await speakLine('Where are you sitting with this?', 4000);
+  await speakLine('If there is something here, you can put it into words.', 4600);
 
-  showThreshold([
-    { label: '— still taking it in —',   action: () => meetVisitor('taking') },
-    { label: '— something is forming —', action: () => meetVisitor('forming') },
-    { label: '— I know this feeling —',  action: () => meetVisitor('knowing') },
-  ]);
+  await wait(800);
+  clearDrift();
+  showWritingField(afterWriting);
 }
 
-async function meetVisitor(state){
-  clearThreshold();
-  clearDrift();
-  await wait(600);
+// ── WRITING FIELD ──
+function showWritingField(onContinue){
+  const field = $('writing-field');
+  const input = $('writing-input');
+  const btn   = $('writing-continue');
+  input.value = '';
+  btn.onclick = () => {
+    hideWritingField();
+    onContinue();
+  };
+  field.classList.add('visible');
+  input.focus();
+}
 
-  if(state === 'taking'){
-    await speakLine('Good.', 3200);
-    await speakLine('There is no hurry here.', 3800);
-    await speakLine('<em>The field holds<br>whatever arrives.</em>', 4800);
-  }
-  else if(state === 'forming'){
-    await speakLine('Then let it form.', 3400);
-    await speakLine('Do not name it yet.', 3600);
-    await speakLine('<em>Something forming<br>is already real.</em>', 5000);
-  }
-  else if(state === 'knowing'){
-    await speakLine('Then you have been here before —', 3800);
-    await speakLine('perhaps without a name for it.', 3800);
-    await speakLine('The recognition is the arrival.', 4400);
-    await speakLine('<em>You were already on the way.</em>', 5000);
-  }
+function hideWritingField(){
+  const field = $('writing-field');
+  const input = $('writing-input');
+  // Cleared immediately, not just hidden — nothing here is ever read,
+  // stored, or transmitted, by this site or anything it calls.
+  input.value = '';
+  field.classList.remove('visible');
+}
+
+async function afterWriting(){
+  await wait(800);
+
+  await speakLine('What you\'re looking for is not mine to hand you.', 4000);
+  await speakLine('What you write is not mine to judge back to you.', 4200);
+  await speakLine('It was already there — before the first word.', 4200);
+  await speakLine('<em>I can only hold it up, so its presence is felt.</em>', 4800);
 
   await wait(1800);
   showThreshold([{ label: '— before you go —', action: closing }]);
