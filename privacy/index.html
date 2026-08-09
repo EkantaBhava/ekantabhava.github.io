@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy | Ekanta Bhava</title>
+
+<meta name="description" content="What stays on your device, what we never collect, and how TestFlight fits in — the privacy stance for every app in the Ekanta Bhava family.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ekantabhava.com/privacy/">
+<meta property="og:title" content="Privacy | Ekanta Bhava">
+<meta property="og:description" content="What stays on your device, what we never collect, and how TestFlight fits in.">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%230A0806'/%3E%3Ccircle cx='50' cy='50' r='22' fill='%23C8956C'/%3E%3C/svg%3E">
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap');
+
+  :root {
+    --amber: #C8956C;
+    --amber-pale: rgba(200,149,108,0.45);
+    --dust: #F2EBE0;
+    --dust-dim: rgba(242,235,224,0.62);
+    --dark: #0A0806;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--dark); color: var(--dust);
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  body {
+    display: flex; justify-content: center;
+    padding: 9vh 6vw 12vh 6vw;
+  }
+
+  main { max-width: 680px; width: 100%; }
+
+  h1 {
+    font-weight: 400; font-style: italic;
+    font-size: clamp(1.6rem, 3.6vw, 2.1rem);
+    margin: 0 0 0.3em 0;
+  }
+
+  .updated {
+    font-size: 0.85rem; letter-spacing: 0.08em;
+    color: var(--amber-pale); font-style: italic;
+    margin: 0 0 2.6em 0;
+  }
+
+  h2 {
+    font-weight: 500; font-style: normal;
+    font-size: 1.15rem;
+    color: var(--amber);
+    letter-spacing: 0.02em;
+    margin: 2.4em 0 0.7em 0;
+    border-top: 1px solid rgba(200,149,108,0.18);
+    padding-top: 1.4em;
+  }
+  h2:first-of-type { border-top: none; padding-top: 0; }
+
+  p, li {
+    font-size: 1.05rem; line-height: 1.75;
+    color: var(--dust-dim); font-weight: 300;
+  }
+
+  ul { margin: 0.6em 0; padding-left: 1.3em; }
+  li { margin-bottom: 0.5em; }
+
+  a { color: var(--amber); text-decoration: none; border-bottom: 1px solid var(--amber-pale); }
+  a:hover { border-bottom-color: var(--amber); }
+
+  .back { display: inline-block; margin-top: 3em; font-size: 0.95rem; }
+</style>
+</head>
+<body>
+<main>
+
+  <h1>Privacy</h1>
+  <p class="updated">Applies to every app in the Ekanta Bhava family — Ekanta Yatra, Karma Yatra, Loka Yatra.</p>
+
+  <h2>What we store, and where</h2>
+  <p>
+    None of it is ever transmitted to us — we don't run servers that
+    receive it, and there's no account tying it to you. What happens beyond
+    that differs slightly by app, so here it is plainly, app by app:
+  </p>
+  <ul>
+    <li>
+      <strong>Ekanta Yatra</strong> stores nothing at all, anywhere. Each
+      reflection happens in the moment, on your device, using Apple's
+      on-device Foundation Models framework — and it's gone once the
+      session ends. Nothing is saved, on your device or off it.
+    </li>
+    <li>
+      <strong>Loka Yatra</strong> stores what you build — your relational
+      map, the boundaries you've set — locally on your device only. It is
+      never transmitted anywhere.
+    </li>
+    <li>
+      <strong>Karma Yatra</strong> stores your quests and commitments
+      locally on your device, the same way. For certain complex
+      calculations — when a decision weighs trade-offs across several areas
+      of life at once, more than the on-device model can resolve alone — it
+      may briefly use Apple's Private Cloud Compute to help synthesize the
+      answer. Private Cloud Compute is Apple's own privacy-preserving cloud
+      system: built so that data sent to it is used only for that one
+      request, not retained afterward, not accessible to Apple staff, and
+      independently verifiable by security researchers. It's Apple's
+      architecture, not something we built — we're relying on Apple's own
+      guarantees here, the same way any app using this framework does.
+    </li>
+  </ul>
+
+  <h2>What we don't collect</h2>
+  <ul>
+    <li>No account or sign-in is required to use any of these apps.</li>
+    <li>No analytics or advertising SDKs are built into them.</li>
+    <li>Nothing you write is read, reviewed, or used to train anything, by us or anyone else.</li>
+    <li>We don't sell or share data, because we don't hold any to begin with.</li>
+  </ul>
+
+  <h2>TestFlight, specifically</h2>
+  <p>
+    If you're trying an app through TestFlight, that installation and
+    update process is run by Apple, under Apple's own privacy terms — not
+    ours. If you choose to send feedback through TestFlight's built-in
+    "Send Beta Feedback," that feedback (and any screenshot or diagnostic
+    you attach) goes to Apple and is shared with us as the developer. That's
+    optional and only happens if you actively send it.
+  </p>
+
+  <h2>If you email us</h2>
+  <p>
+    Writing to us directly — for feedback, a question, or to join a
+    waitlist — is ordinary email correspondence. We see what you send us,
+    the same as any email, and use it only to respond or to understand what
+    to build next. We don't add you to a marketing list without asking.
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    If this ever changes — for instance, if a future feature introduces
+    optional cloud sync — this page will say so plainly, and any such
+    feature will be opt-in, not the default.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    Questions about any of this: <a href="mailto:presence@ekantabhava.com">presence@ekantabhava.com</a>
+  </p>
+
+  <a class="back" href="/">← Ekanta Bhava</a>
+
+</main>
+</body>
+</html>
