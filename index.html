@@ -889,9 +889,12 @@ async function runExpression(which){
     await speakLine('Not a tool that analyses you.', 3400);
     await speakLine('<em>A field that holds what you bring.</em>', 4200);
     await speakLine('Session by session,<br>your own words becoming<br>the ground you stand on.', 5800);
-    await speakLine('<em>Ekanta Bhava is forming.</em>', 4000);
-    await speakLine('Waiting in the wings.', 3400);
+    await speakLine('<em>Ekanta Yatra is the first to arrive.</em>', 4200);
     clearDrift();
+    expressionLink = addExpressionLink(
+      'Ekanta Yatra ↗',
+      'https://ekantabhava.com/ekanta-yatra/'
+    );
   }
 
   else if(which === 'films'){
