@@ -598,6 +598,66 @@ function addExpressionLink(text, url){
   return wrap;
 }
 
+// ── THREE ROOM LINKS — unhurried, horizontal triad at centre top ──
+function addThreeRoomLinks(){
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `
+    position: fixed; top: 20%; left: 50%;
+    transform: translateX(-50%);
+    text-align: center; z-index: 35;
+    opacity: 0; transition: opacity 2s ease;
+    pointer-events: all;
+    display: flex; gap: 2.4rem; justify-content: center;
+    width: 90%; max-width: 580px;
+  `;
+
+  const rooms = [
+    { name: 'Ekanta Yatra ↗', url: './ekanta-yatra/index.html', sub: 'The Inner Mirror' },
+    { name: 'Karma Yatra ↗', url: './karma-yatra/index.html', sub: 'The Workbench' },
+    { name: 'Loka Yatra ↗', url: './loka-yatra/index.html', sub: 'The Relational Hearth' }
+  ];
+
+  rooms.forEach(r => {
+    const col = document.createElement('div');
+    col.style.cssText = `display: flex; flex-direction: column; gap: 0.35rem; align-items: center;`;
+
+    const a = document.createElement('a');
+    a.href = r.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = r.name;
+    a.style.cssText = `
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(0.68rem, 1.1vw, 0.78rem);
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--amber); text-decoration: none;
+      opacity: 0.7; transition: opacity 0.4s ease;
+      border-bottom: 1px solid rgba(200,149,108,0.3);
+      padding-bottom: 2px;
+    `;
+    a.onmouseenter = () => a.style.opacity = '1';
+    a.onmouseleave = () => a.style.opacity = '0.7';
+
+    const span = document.createElement('span');
+    span.textContent = r.sub;
+    span.style.cssText = `
+      font-family: ui-monospace, Menlo, Monaco, monospace;
+      font-size: 0.62rem; letter-spacing: 0.08em;
+      color: var(--amber-pale); opacity: 0.6;
+    `;
+
+    col.appendChild(a);
+    col.appendChild(span);
+    wrap.appendChild(col);
+  });
+
+  document.body.appendChild(wrap);
+  requestAnimationFrame(() => { 
+    requestAnimationFrame(() => { wrap.style.opacity = '1'; }); 
+  });
+  return wrap;
+}
+
 // ── SHOW THRESHOLD ──
 // Multi-button lists (with dividers) are taller than single-button ones and
 // were colliding with whatever drift-beat caption is still on screen above
@@ -884,17 +944,18 @@ async function runExpression(which){
   await wait(600);
 
   if(which === 'app'){
-    await speakLine('A digital twin.', 3200);
-    await speakLine('Formed from your own language —<br>not mine.', 4200);
-    await speakLine('Not a tool that analyses you.', 3400);
-    await speakLine('<em>A field that holds what you bring.</em>', 4200);
-    await speakLine('Session by session,<br>your own words becoming<br>the ground you stand on.', 5800);
-    await speakLine('<em>Ekanta Yatra is the first to arrive.</em>', 4200);
+    await speakLine('Three rooms for one person.', 3400);
+    await speakLine('Not tools that analyse you.', 3200);
+    await speakLine('<em>Fields that hold what you bring.</em>', 4200);
+    await speakLine('One where thought turns inward,<br>deconstructing mental friction back to stillness.', 4800);
+    await speakLine('One where practical work and lived means<br>find honest balance at the workbench.', 4800);
+    await speakLine('One where boundaries are spoken across the table,<br>protecting the connection without exhaustion.', 5000);
+    await speakLine('None of them ask you to translate yourself<br>before the work can begin.', 4600);
+    
     clearDrift();
-    expressionLink = addExpressionLink(
-      'Ekanta Yatra ↗',
-      'https://ekantabhava.com/ekanta-yatra/'
-    );
+    
+    // Presents the three quiet rooms together as a single threshold
+    expressionLink = addThreeRoomLinks();
   }
 
   else if(which === 'films'){
